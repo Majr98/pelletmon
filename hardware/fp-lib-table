@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name QRCodes)(type KiCad)(uri ${KIPRJMOD}/QRCodes.pretty)(options "")(descr ""))
+)
