@@ -10,6 +10,16 @@ The goal of the project is to reverse engineer the CAN communication of the new 
 
 The project will have its own PCB. Communication with the outside world will be carried out using ESP32 and fuel level measurement using HC-SR04. The SN65HVD230 chip will be used as the CAN transceiver. The software will be written in the Arduino environment in C ++ and will be powered with my IoT framework - ksIotFrameworkLib.
 
+# KNOWN ISSUES
+
+## HARDWARE
+
+### rev 0.01a-0.01c
+- GPIO0 is directly connected to SWITCH (S1), avoid setting direct HIGH state at that pin from software, because it can result in short circuit when pressing S1, as it will tie IO0 to ground directly.
+
+
+## SOFTWARE
+
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
 ![Board design right](renders/PelletMon2.jpg "Board design right")
