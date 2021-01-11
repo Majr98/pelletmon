@@ -25,5 +25,5 @@ The project will have its own PCB. Communication with the outside world will be 
 ![Board design right](renders/PelletMon2.jpg "Board design right")
 
 # Special thanks
-https://m-works.net/
-Robert Ł.
+- https://m-works.net/
+- Robert Ł.
