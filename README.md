@@ -23,3 +23,7 @@ The project will have its own PCB. Communication with the outside world will be 
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
 ![Board design right](renders/PelletMon2.jpg "Board design right")
+
+#Special thanks
+https://m-works.net/
+Robert Ł.
