@@ -538,4 +538,8 @@ Wire Wire Line
 	8700 3000 8700 3950
 NoConn ~ 7275 3450
 NoConn ~ 3225 3025
+Text Label 4250 4125 0    50   ~ 0
+CAN_P
+Text Label 4250 4525 0    50   ~ 0
+CAN_N
 $EndSCHEMATC
