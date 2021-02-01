@@ -1,5 +1,5 @@
-#include "src/PelletMOn.h"
-#include "src/config/PelletMOnConfig.h"
+#include "src/apps/PelletMon/PelletMon.h"
+#include "src/apps/config/PelletMOnConfig.h"
 
 #ifdef ESP32
 #include "SPIFFS.h"

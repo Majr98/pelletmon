@@ -1,8 +1,7 @@
 #include "PelletMon.h"
-#include "board.h"
+#include "../../board.h"
 #include "../config/PelletMonConfig.h"
 #include "components/EstymaCANClient.h"
-
 #include "ArduinoOTA.h"
 
 using namespace std::placeholders;

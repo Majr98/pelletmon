@@ -1,5 +1,5 @@
 #include "PelletMonConfig.h"
-#include "../board.h"
+#include "../../board.h"
 
 const char PelletMonConfig::pelletMonDeviceName[] = "PelletMon";
 
