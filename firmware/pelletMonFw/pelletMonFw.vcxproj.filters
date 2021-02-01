@@ -1,25 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="src\board.h" />
-    <ClInclude Include="src\config\PelletMonConfig.h">
-      <Filter>Config</Filter>
-    </ClInclude>
     <ClInclude Include="__vm\.pelletMonFw.vsarduino.h" />
-    <ClInclude Include="src\PelletMon.h" />
+    <ClInclude Include="src\board.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\pelletmon\PelletMon.h">
+      <Filter>src\apps\pelletmon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\pelletmon\components\EstymaCANClient.h">
+      <Filter>src\apps\pelletmon\comps</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\config\PelletMonConfig.h">
+      <Filter>src\apps\config</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="pelletMonFw.ino" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Config">
-      <UniqueIdentifier>{845e5e4c-2159-4a1e-af35-7297c1637ef8}</UniqueIdentifier>
+    <Filter Include="src">
+      <UniqueIdentifier>{f94168df-4194-4e39-9d12-9cfca6f7c996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\apps">
+      <UniqueIdentifier>{cdeb93d9-221b-4fa4-ac40-6e0e86a72db8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\apps\pelletmon">
+      <UniqueIdentifier>{e5eadb79-e317-4291-a92f-2326f000b351}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\apps\pelletmon\comps">
+      <UniqueIdentifier>{5d9bfff7-9289-4a42-8c65-2643bb1327d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\apps\config">
+      <UniqueIdentifier>{fb956527-b30d-4481-a386-0ec19321b3ab}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\config\PelletMonConfig.cpp">
-      <Filter>Config</Filter>
+    <ClCompile Include="src\apps\pelletmon\PelletMon.cpp">
+      <Filter>src\apps\pelletmon</Filter>
     </ClCompile>
-    <ClCompile Include="src\PelletMon.cpp" />
+    <ClCompile Include="src\apps\pelletmon\components\EstymaCANClient.cpp">
+      <Filter>src\apps\pelletmon\comps</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\config\PelletMonConfig.cpp">
+      <Filter>src\apps\config</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pelletMonFw.ino" />
   </ItemGroup>
 </Project>

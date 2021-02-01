@@ -17,7 +17,6 @@ class PelletMon : public ksf::ksApplication
 		std::shared_ptr<ksf::ksLed> statusLed;
 		std::shared_ptr<ksf::ksEventHandle> connEventHandle, msgEventHandle, disEventHandle;
 
-		void onMqttMessage(const String& topic, const String& payload);
 		void onMqttConnected();
 		void onMqttDisconnected();
 
