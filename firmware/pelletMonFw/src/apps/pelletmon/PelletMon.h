@@ -12,10 +12,10 @@ namespace ksf
 class PelletMon : public ksf::ksApplication
 {
 	protected:
-		std::shared_ptr<ksf::ksMqttConnector> mqtt;
+		std::weak_ptr<ksf::ksMqttConnector> mqtt_wp;
+		std::weak_ptr<ksf::ksLed> statusLed_wp;
 
-		std::shared_ptr<ksf::ksLed> statusLed;
-		std::shared_ptr<ksf::ksEventHandle> connEventHandle, msgEventHandle, disEventHandle;
+		std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, msgEventHandle_sp, disEventHandle_sp;
 
 		void onMqttConnected();
 		void onMqttDisconnected();

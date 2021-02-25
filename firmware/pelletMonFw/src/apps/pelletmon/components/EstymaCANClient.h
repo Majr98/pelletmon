@@ -7,7 +7,8 @@ namespace comps
 	class EstymaCANCLient : public ksf::ksComponent
 	{
 		protected:
-			
+			std::weak_ptr<class ksf::ksLed> statusLed_wp;
+
 		public:
 			EstymaCANCLient();
 

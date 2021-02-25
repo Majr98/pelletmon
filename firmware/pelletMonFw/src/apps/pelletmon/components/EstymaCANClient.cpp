@@ -11,6 +11,7 @@ namespace comps
 
 	bool EstymaCANCLient::init(ksf::ksComposable* owner)
 	{
+		statusLed_wp = owner->findComponent<ksf::ksLed>();
 		CAN.begin(125E3);
 		return true;
 	}
@@ -22,6 +23,7 @@ namespace comps
 		if (packetSize)
 		{
 			//todo
+			
 		}
 
 		return true;

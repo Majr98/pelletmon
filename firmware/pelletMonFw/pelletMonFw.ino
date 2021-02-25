@@ -11,6 +11,8 @@
 // the setup function runs once when you press reset or power the board
 void setup()
 {
+	delay(1000);
+
 	#ifdef ESP32
 		uint32_t chipId = (uint32_t)ESP.getEfuseMac();
 	#else

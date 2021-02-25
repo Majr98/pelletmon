@@ -10,8 +10,8 @@ bool PelletMon::init()
 {
 	addComponent<ksf::ksWifiConnector>(PelletMonConfig::pelletMonDeviceName);
 	addComponent<ksf::ksMqttDebugResponder>();
-	mqtt = addComponent<ksf::ksMqttConnector>();
-	statusLed = addComponent<ksf::ksLed>(STATUS_LED_PIN);
+	mqtt_wp = addComponent<ksf::ksMqttConnector>();
+	statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
 
 	addComponent<comps::EstymaCANCLient>();
 
@@ -21,22 +21,28 @@ bool PelletMon::init()
 	if (!ksApplication::init())
 		return false;
 
-	mqtt->onConnected.registerEvent(connEventHandle, std::bind(&PelletMon::onMqttConnected, this));
-	mqtt->onDisconnected.registerEvent(disEventHandle, std::bind(&PelletMon::onMqttDisconnected, this));
+	if (auto mqtt_sp = mqtt_wp.lock())
+	{
+		mqtt_sp->onConnected->registerEvent(connEventHandle_sp, std::bind(&PelletMon::onMqttConnected, this));
+		mqtt_sp->onDisconnected->registerEvent(disEventHandle_sp, std::bind(&PelletMon::onMqttDisconnected, this));
+	}
 
-	statusLed->setBlinking(500);
+	if (auto statusLed_sp = statusLed_wp.lock())
+		statusLed_sp->setBlinking(500);
 
 	return true;
 }
 
 void PelletMon::onMqttDisconnected()
 {
-	statusLed->setBlinking(500);
+	if (auto statusLed_sp = statusLed_wp.lock())
+		statusLed_sp->setBlinking(500);
 }
 
 void PelletMon::onMqttConnected()
 {
-	statusLed->setBlinking(0);
+	if (auto statusLed_sp = statusLed_wp.lock())
+		statusLed_sp->setBlinking(0);
 }
 
 bool PelletMon::loop()
