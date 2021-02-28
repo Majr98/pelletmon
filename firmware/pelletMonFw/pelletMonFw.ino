@@ -28,7 +28,7 @@ void setup()
 		wifi_set_macaddr(STATION_IF, mac);
 	#endif
 
-	SPIFFS.begin();
+	SPIFFS.begin(true);
 }
 
 // the loop function runs over and over again until power down or reset

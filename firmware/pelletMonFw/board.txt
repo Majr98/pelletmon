@@ -5,4 +5,4 @@ compiler.cpp.extra_flags=-fno-split-wide-types -finline-limit=3 -ffast-math -frt
 
 network.password=ota_ksiotframework
 network.auth_upload=yes
-network.port=8266
+network.port=3232
