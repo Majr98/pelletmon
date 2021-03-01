@@ -42,7 +42,7 @@ namespace comps
 		{
 			if (temperatures[i].first)
 			{
-				String tempStr(temperatures[i].second, TemperatureType::Exhaust ? 0 : 1);
+				String tempStr(temperatures[i].second, i == TemperatureType::Exhaust ? 0 : 1);
 				mqtt_sp->publish(tempChNames[i], tempStr, true);
 				temperatures[i].first = false;
 				bWasDirty = true;
