@@ -7,11 +7,10 @@ namespace comps
 	class EstymaCANClient : public ksf::ksComponent
 	{
 		protected:
-			std::weak_ptr<class ksf::ksLed> statusLed_wp;
 			std::weak_ptr<BoilerStatusUpdater> boilerStatusUpdater_wp;
 
-			double calculateTemperature(short x) const;
-			double calculateExhaustTemperature(short x) const;
+			double calculateTemperature(uint16_t x) const;
+			double calculateExhaustTemperature(uint16_t x) const;
 			
 		public:
 			EstymaCANClient();

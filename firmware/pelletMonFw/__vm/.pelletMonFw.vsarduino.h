@@ -19,7 +19,7 @@
 #define HAVE_CONFIG_H
 #define GCC_NOT_5_2_0 0
 #define WITH_POSIX
-#define F_CPU 240000000L
+#define F_CPU 80000000L
 #define ARDUINO 108013
 #define ARDUINO_ESP32_DEV
 #define ARDUINO_ARCH_ESP32

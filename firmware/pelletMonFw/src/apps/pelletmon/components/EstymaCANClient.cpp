@@ -8,6 +8,8 @@
 #define ESTYMA_CAN_CWUTEMPS 0x3D6
 #define ESTYMA_CAN_EXHAUST_TEMPS 0x4D6
 
+#define ESTYMA_CAN_SPEED 125E3
+
 namespace comps
 {
 	EstymaCANClient::EstymaCANClient()
@@ -15,7 +17,7 @@ namespace comps
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
 	}
 
-	double EstymaCANClient::calculateTemperature(short x) const
+	double EstymaCANClient::calculateTemperature(uint16_t x) const
 	{
 		double a = 1.445633283634090E+02;
 		double b = -1.386947619796149E-01;
@@ -27,7 +29,7 @@ namespace comps
 		return a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5);
 	}
 
-	double EstymaCANClient::calculateExhaustTemperature(short x) const
+	double EstymaCANClient::calculateExhaustTemperature(uint16_t x) const
 	{
 		double a = 7.371348541128694E+05;
 		double b = -1.577562311085309E+03;
@@ -42,9 +44,8 @@ namespace comps
 
 	bool EstymaCANClient::init(ksf::ksComposable* owner)
 	{
-		statusLed_wp = owner->findComponent<ksf::ksLed>();
 		boilerStatusUpdater_wp = owner->findComponent<BoilerStatusUpdater>();
-		CAN.begin(125E3);
+		CAN.begin(ESTYMA_CAN_SPEED);
 		return true;
 	}
 
@@ -54,7 +55,7 @@ namespace comps
 
 		auto bsu_sp = boilerStatusUpdater_wp.lock();
 		
-		if (packetSize > 0 && bsu_sp)
+		if (!CAN.packetRtr() && packetSize > 0 && bsu_sp)
 		{
 			switch (CAN.packetId())
 			{
@@ -70,9 +71,6 @@ namespace comps
 				{
 					uint16_t temps[4];
 					CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-
-					if (auto statusLed_sp = statusLed_wp.lock())
-						statusLed_sp->setBlinking(50, 1);
 
 					bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
 				}
