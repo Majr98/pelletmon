@@ -23,15 +23,12 @@ namespace comps
 
 	void BoilerStatusUpdater::updateTemperature(TemperatureType::TYPE type, double value)
 	{
-		if (value > -10.0 && value < 500.0)
-		{
-			double minChange = type == TemperatureType::Exhaust ? 2.0f : 0.25f;
+		double minChange = type == TemperatureType::Exhaust ? 2.0f : 0.25f;
 
-			if (fabs(value - temperatures[type].second) >= minChange)
-			{
-				temperatures[type].second = value;
-				temperatures[type].first = true;
-			}
+		if (fabs(value - temperatures[type].second) >= minChange)
+		{
+			temperatures[type].second = value;
+			temperatures[type].first = true;
 		}
 	}
 
@@ -64,7 +61,7 @@ namespace comps
 				if (ctime - lastTempUpdate > 1000)
 				{
 					if (sendTemperatures(mqtt_sp) && led_sp)
-						led_sp->setBlinking(25, 2);
+						led_sp->setBlinking(50, 3);
 
 					lastTempUpdate = ctime;
 				}
@@ -74,7 +71,7 @@ namespace comps
 					mqtt_sp->publish("rotations", String(rotations), true);
 					lastStatusUpdate = ctime;
 
-					if (led_sp) led_sp->setBlinking(25, 2);
+					if (led_sp) led_sp->setBlinking(25, 3);
 				}
 			}
 		}

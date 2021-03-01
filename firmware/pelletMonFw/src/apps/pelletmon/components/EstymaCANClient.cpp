@@ -17,6 +17,24 @@ namespace comps
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
 	}
 
+	void EstymaCANClient::bindCAN()
+	{
+		if (!isBound)
+		{
+			isBound = true;
+			CAN.begin(ESTYMA_CAN_SPEED);
+		}
+	}
+
+	void EstymaCANClient::unbindCAN()
+	{
+		if (isBound)
+		{
+			isBound = false;
+			CAN.end();
+		}
+	}
+
 	double EstymaCANClient::calculateTemperature(uint16_t x) const
 	{
 		double a = 1.445633283634090E+02;
@@ -41,56 +59,55 @@ namespace comps
 		return a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5);
 	}
 
-
 	bool EstymaCANClient::init(ksf::ksComposable* owner)
 	{
 		boilerStatusUpdater_wp = owner->findComponent<BoilerStatusUpdater>();
-		CAN.begin(ESTYMA_CAN_SPEED);
 		return true;
 	}
 
 	bool EstymaCANClient::loop()
 	{
-		int packetSize = CAN.parsePacket();
-
-		auto bsu_sp = boilerStatusUpdater_wp.lock();
-		
-		if (!CAN.packetRtr() && packetSize > 0 && bsu_sp)
+		while (isBound && CAN.parsePacket() > 0)
 		{
-			switch (CAN.packetId())
+			auto bsu_sp = boilerStatusUpdater_wp.lock();
+
+			if (!CAN.packetRtr() && bsu_sp)
 			{
-				case ESTYMA_CAN_ROTATIONS:
+				switch (CAN.packetId())
 				{
-					unsigned short val;
-					CAN.readBytes((uint8_t*)&val, 2);
-					bsu_sp->rotations = val;
-				}
-				break;
+					case ESTYMA_CAN_ROTATIONS:
+					{
+						unsigned short val;
+						CAN.readBytes((uint8_t*)&val, 2);
+						bsu_sp->rotations = val;
+					}
+					break;
 
-				case ESTYMA_CAN_TEMEPRATURES:
-				{
-					uint16_t temps[4];
-					CAN.readBytes((uint8_t*)&temps, sizeof(temps));
+					case ESTYMA_CAN_TEMEPRATURES:
+					{
+						uint16_t temps[4];
+						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
 
-					bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
-				}
-				break;
+						bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
+					}
+					break;
 
-				case ESTYMA_CAN_CWUTEMPS:
-				{
-					uint16_t temps[4];
-					CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-					bsu_sp->updateTemperature(TemperatureType::Cwu, calculateTemperature(temps[0]));
-				}
-				break;
+					case ESTYMA_CAN_CWUTEMPS:
+					{
+						uint16_t temps[4];
+						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
+						bsu_sp->updateTemperature(TemperatureType::Cwu, calculateTemperature(temps[0]));
+					}
+					break;
 
-				case ESTYMA_CAN_EXHAUST_TEMPS:
-				{
-					uint16_t temps[4];
-					CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-					bsu_sp->updateTemperature(TemperatureType::Exhaust, calculateExhaustTemperature(temps[3]));
+					case ESTYMA_CAN_EXHAUST_TEMPS:
+					{
+						uint16_t temps[4];
+						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
+						bsu_sp->updateTemperature(TemperatureType::Exhaust, calculateExhaustTemperature(temps[3]));
+					}
+					break;
 				}
-				break;
 			}
 		}
 
@@ -99,6 +116,6 @@ namespace comps
 
 	EstymaCANClient::~EstymaCANClient()
 	{
-		CAN.end();
+		unbindCAN();
 	}
 }

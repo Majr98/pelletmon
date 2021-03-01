@@ -9,11 +9,17 @@ namespace ksf
 	class ksLed;
 }
 
+namespace comps
+{
+	class EstymaCANClient;
+}
+
 class PelletMon : public ksf::ksApplication
 {
 	protected:
 		std::weak_ptr<ksf::ksMqttConnector> mqtt_wp;
 		std::weak_ptr<ksf::ksLed> statusLed_wp;
+		std::weak_ptr<comps::EstymaCANClient> canclient_wp;
 
 		std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, msgEventHandle_sp, disEventHandle_sp;
 

@@ -12,8 +12,13 @@ namespace comps
 			double calculateTemperature(uint16_t x) const;
 			double calculateExhaustTemperature(uint16_t x) const;
 			
+			bool isBound = false;
+
 		public:
 			EstymaCANClient();
+
+			void bindCAN();
+			void unbindCAN();
 
 			bool init(class ksf::ksComposable* owner) override;
 			bool loop() override;

@@ -19,7 +19,7 @@ bool PelletMon::init()
 
 	/* Add CAN handler. */
 	addComponent<comps::BoilerStatusUpdater>();
-	addComponent<comps::EstymaCANClient>();
+	canclient_wp = addComponent<comps::EstymaCANClient>();
 
 	/* Try to initialize superclass. It will initialize our components and tcpip (due to WiFi component). */
 	if (!ksApplication::init())
@@ -49,6 +49,10 @@ void PelletMon::onMqttDisconnected()
 	/* Start blinking status led on MQTT disconnect. */
 	if (auto statusLed_sp = statusLed_wp.lock())
 		statusLed_sp->setBlinking(500);
+
+	/* Unbind CAN on disconnect. */
+	if (auto canclient_sp = canclient_wp.lock())
+		canclient_sp->unbindCAN();
 }
 
 void PelletMon::onMqttConnected()
@@ -56,6 +60,10 @@ void PelletMon::onMqttConnected()
 	/* Stop blinking status led on MQTT connect. */
 	if (auto statusLed_sp = statusLed_wp.lock())
 		statusLed_sp->setBlinking(0);
+
+	/* Bind CAN on connected. */
+	if (auto canclient_sp = canclient_wp.lock())
+		canclient_sp->bindCAN();
 }
 
 bool PelletMon::loop()
