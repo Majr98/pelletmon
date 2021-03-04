@@ -29,6 +29,12 @@ bool PelletMon::init()
 	ArduinoOTA.begin();
 	ArduinoOTA.setPassword("ota_ksiotframework");
 
+	/* We want to unbind CAN before flash start. */
+	ArduinoOTA.onStart([=]() {
+		if (auto canclient_sp = canclient_wp.lock())
+			canclient_sp->unbindCAN();
+	});
+
 	/* Bind to MQTT events. */
 	if (auto mqtt_sp = mqtt_wp.lock())
 	{

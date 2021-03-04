@@ -23,6 +23,7 @@ namespace comps
 		{
 			isBound = true;
 			CAN.begin(ESTYMA_CAN_SPEED);
+			CAN.observe();
 		}
 	}
 
