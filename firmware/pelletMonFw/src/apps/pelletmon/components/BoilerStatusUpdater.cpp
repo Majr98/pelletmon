@@ -4,10 +4,12 @@
 
 namespace comps
 {
+	const char* BoilerStatusUpdater::tempChNames[TemperatureType::MAX] = { "boiler_temp", "cwu_temp", "exhaust_temp" };
+
 	BoilerStatusUpdater::BoilerStatusUpdater()
 	{
 		for (unsigned int i = 0; i < TemperatureType::MAX; ++i)
-			temperatures[i].first = false;
+			temperatures[i] = 0;
 	}
 
 	bool BoilerStatusUpdater::init(ksf::ksComposable* owner)
@@ -18,60 +20,41 @@ namespace comps
 		return true;
 	}
 
-	const char* BoilerStatusUpdater::tempChNames[TemperatureType::MAX] = 
-		{ "boiler_temp", "cwu_temp", "exhaust_temp" };
-
 	void BoilerStatusUpdater::updateTemperature(TemperatureType::TYPE type, double value)
 	{
-		double minChange = type == TemperatureType::Exhaust ? 2.0f : 0.25f;
+		temperatures[type] = value;
+	}
 
-		if (fabs(value - temperatures[type].second) >= minChange)
+	void BoilerStatusUpdater::sendTemperatures(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp) const
+	{
+		for (unsigned int i = 0; i < TemperatureType::MAX; ++i)
 		{
-			temperatures[type].second = value;
-			temperatures[type].first = true;
+			String tempStr(temperatures[i], i == TemperatureType::Exhaust ? 0 : 1);
+			mqtt_sp->publish(tempChNames[i], tempStr, true);
 		}
 	}
 
-	bool BoilerStatusUpdater::sendTemperatures(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp)
+	void BoilerStatusUpdater::sendStatus(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp) const
 	{
-		bool bWasDirty = false;
-		for (unsigned int i = 0; i < TemperatureType::MAX; ++i)
-		{
-			if (temperatures[i].first)
-			{
-				String tempStr(temperatures[i].second, i == TemperatureType::Exhaust ? 0 : 1);
-				mqtt_sp->publish(tempChNames[i], tempStr, true);
-				temperatures[i].first = false;
-				bWasDirty = true;
-			}
-		}
+		if (auto led_sp = led_wp.lock())
+			led_sp->setBlinking(50, 3);
 
-		return bWasDirty;
+		sendTemperatures(mqtt_sp);
+		mqtt_sp->publish("rotations", String(rotations), true);
 	}
 
 	bool BoilerStatusUpdater::loop()
 	{
-		auto led_sp = led_wp.lock();
+		unsigned int ctime = millis();
 
-		if (auto mqtt_sp = mqtt_wp.lock())
+		if (ctime - lastStatusUpdate > MQTT_STATUS_UPDATE_INTERVAL)
 		{
-			if (mqtt_sp->isConnected())
+			if (auto mqtt_sp = mqtt_wp.lock())
 			{
-				unsigned int ctime = millis();
-				if (ctime - lastTempUpdate > 1000)
+				if (mqtt_sp->isConnected())
 				{
-					if (sendTemperatures(mqtt_sp) && led_sp)
-						led_sp->setBlinking(50, 3);
-
-					lastTempUpdate = ctime;
-				}
-
-				if (ctime - lastStatusUpdate > 15000)
-				{
-					mqtt_sp->publish("rotations", String(rotations), true);
+					sendStatus(mqtt_sp);
 					lastStatusUpdate = ctime;
-
-					if (led_sp) led_sp->setBlinking(25, 3);
 				}
 			}
 		}
