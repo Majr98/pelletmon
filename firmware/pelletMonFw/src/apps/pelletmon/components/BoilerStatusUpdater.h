@@ -8,6 +8,7 @@ namespace comps
 		enum TYPE
 		{
 			Boiler,
+			Boiler2,
 			Cwu,
 			Exhaust,
 			MAX

@@ -4,7 +4,7 @@
 
 namespace comps
 {
-	const char* BoilerStatusUpdater::tempChNames[TemperatureType::MAX] = { "boiler_temp", "cwu_temp", "exhaust_temp" };
+	const char* BoilerStatusUpdater::tempChNames[TemperatureType::MAX] = { "boiler_temp", "boiler2_temp", "cwu_temp", "exhaust_temp" };
 
 	BoilerStatusUpdater::BoilerStatusUpdater()
 	{
@@ -37,7 +37,7 @@ namespace comps
 	void BoilerStatusUpdater::sendStatus(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp) const
 	{
 		if (auto led_sp = led_wp.lock())
-			led_sp->setBlinking(50, 3);
+			led_sp->setBlinking(100, 3);
 
 		sendTemperatures(mqtt_sp);
 		mqtt_sp->publish("rotations", String(rotations), true);

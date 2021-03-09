@@ -10,6 +10,10 @@
 
 #define ESTYMA_CAN_SPEED 125E3
 
+#define REG_BASE                   0x3ff6b000
+#define REG_RXERR                  0x0e
+#define REG_TXERR                  0x0f
+
 namespace comps
 {
 	EstymaCANClient::EstymaCANClient()
@@ -17,12 +21,53 @@ namespace comps
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
 	}
 
+	unsigned int EstymaCANClient::getRxErrorCount()
+	{
+		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + REG_RXERR * 4);
+		uint8_t regVal = *reg;
+		return (unsigned int)regVal;
+	}
+
+	unsigned int EstymaCANClient::getTxErrorCount()
+	{
+		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + REG_TXERR * 4);
+		uint8_t regVal = *reg;
+		return (unsigned int)regVal;
+	}
+
 	void EstymaCANClient::bindCAN()
 	{
 		if (!isBound)
 		{
 			isBound = true;
+
 			CAN.begin(ESTYMA_CAN_SPEED);
+			
+			/*
+				[0X2D7, 0X2D6, 0X3D6, 0X4D6]
+				Filter: 0x0D6
+				Mask : 0x0FE
+				ID : 0x0D6 will be received
+				ID : 0x0D7 will be received
+				ID : 0x1D6 will be received
+				ID : 0x1D7 will be received
+				ID : 0x2D6 will be received
+				ID : 0x2D7 will be received
+				ID : 0x3D6 will be received
+				ID : 0x3D7 will be received
+				ID : 0x4D6 will be received
+				ID : 0x4D7 will be received
+				ID : 0x5D6 will be received
+				ID : 0x5D7 will be received
+				ID : 0x6D6 will be received
+				ID : 0x6D7 will be received
+				ID : 0x7D6 will be received
+				ID : 0x7D7 will be received
+				16 ID's will be received
+			*/
+			CAN.filter(0x0D6, 0x0FE);
+
+			/* Observe mode */
 			CAN.observe();
 		}
 	}
@@ -32,6 +77,11 @@ namespace comps
 		if (isBound)
 		{
 			isBound = false;
+
+			/* Reset CAN device */
+			volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
+			*reg = (*reg & ~0x17) | 0x01;
+
 			CAN.end();
 		}
 	}
@@ -90,6 +140,7 @@ namespace comps
 						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
 
 						bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
+						bsu_sp->updateTemperature(TemperatureType::Boiler2, calculateTemperature(temps[1]));
 					}
 					break;
 

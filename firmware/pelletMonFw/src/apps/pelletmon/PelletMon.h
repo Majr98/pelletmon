@@ -25,6 +25,7 @@ class PelletMon : public ksf::ksApplication
 
 		void onMqttConnected();
 		void onMqttDisconnected();
+		void onMessage(const String& topic, const String& message);
 
 	public:
 		bool init() override;

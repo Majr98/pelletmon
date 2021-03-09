@@ -11,11 +11,14 @@ namespace comps
 
 			double calculateTemperature(uint16_t x) const;
 			double calculateExhaustTemperature(uint16_t x) const;
-			
+
 			bool isBound = false;
 
 		public:
 			EstymaCANClient();
+
+			unsigned int getRxErrorCount();
+			unsigned int getTxErrorCount();
 
 			void bindCAN();
 			void unbindCAN();
