@@ -10,6 +10,8 @@ namespace comps
 	{
 		for (unsigned int i = 0; i < TemperatureType::MAX; ++i)
 			temperatures[i] = 0;
+
+		rotations = 0;
 	}
 
 	bool BoilerStatusUpdater::init(ksf::ksComposable* owner)

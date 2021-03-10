@@ -23,7 +23,7 @@ namespace comps
 		protected:
 			static const char* tempChNames[TemperatureType::MAX];
 			std::atomic<float> temperatures[TemperatureType::MAX];
-			std::atomic<unsigned int> rotations = 0;
+			std::atomic<unsigned int> rotations;
 
 			unsigned int lastPublishTime = 0;
 
