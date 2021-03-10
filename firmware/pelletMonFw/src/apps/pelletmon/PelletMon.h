@@ -21,11 +21,10 @@ class PelletMon : public ksf::ksApplication
 		std::weak_ptr<ksf::ksLed> statusLed_wp;
 		std::weak_ptr<comps::EstymaCANClient> canclient_wp;
 
-		std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, msgEventHandle_sp, disEventHandle_sp;
+		std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp;
 
 		void onMqttConnected();
 		void onMqttDisconnected();
-		void onMessage(const String& topic, const String& message);
 
 	public:
 		bool init() override;

@@ -40,7 +40,6 @@ bool PelletMon::init()
 	{
 		mqtt_sp->onConnected->registerEvent(connEventHandle_sp, std::bind(&PelletMon::onMqttConnected, this));
 		mqtt_sp->onDisconnected->registerEvent(disEventHandle_sp, std::bind(&PelletMon::onMqttDisconnected, this));
-		mqtt_sp->onMesssage->registerEvent(msgEventHandle_sp, std::bind(&PelletMon::onMessage, this, _1, _2));
 	}
 
 	/* Start blinking status led. It will be disabled when Mqtt connection is established (by onMqttConnected callback). */
@@ -71,26 +70,6 @@ void PelletMon::onMqttConnected()
 	/* Bind CAN on connected. */
 	if (auto canclient_sp = canclient_wp.lock())
 		canclient_sp->bindCAN();
-}
-
-void PelletMon::onMessage(const String& topic, const String& message)
-{
-	if (topic.equals("cmd"))
-	{
-		if (message.equals("canstats"))
-		{
-			if (auto canclient_sp = canclient_wp.lock())
-			{
-				if (auto mqtt_sp = mqtt_wp.lock())
-				{
-					mqtt_sp->publish("log",
-						"RXERR: " + String(canclient_sp->getRxErrorCount()) + ", " +
-						"TXERR: " + String(canclient_sp->getTxErrorCount())
-					);
-				}
-			}
-		}
-	}
 }
 
 bool PelletMon::loop()
