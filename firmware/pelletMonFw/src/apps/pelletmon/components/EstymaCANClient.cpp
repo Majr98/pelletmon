@@ -17,6 +17,11 @@
 
 namespace comps
 {
+	void EstymaCANClient::staticInterruptWrapper(void* eccPtr)
+	{
+		((EstymaCANClient*)eccPtr)->handleCANBusInterrupt();
+	}
+
 	EstymaCANClient::EstymaCANClient()
 	{
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
@@ -42,52 +47,35 @@ namespace comps
 	{
 		if (!isBound)
 		{
+			/* Set isBound flag. */
 			isBound = true;
 
+			/* Start CAN BUS. */
 			CAN.begin(ESTYMA_CAN_SPEED);
 			
 			/*
-				[0X2D7, 0X2D6, 0X3D6, 0X4D6]
-				Filter: 0x0D6
-				Mask : 0x0FE
-				ID : 0x0D6 will be received
-				ID : 0x0D7 will be received
-				ID : 0x1D6 will be received
-				ID : 0x1D7 will be received
-				ID : 0x2D6 will be received
-				ID : 0x2D7 will be received
-				ID : 0x3D6 will be received
-				ID : 0x3D7 will be received
-				ID : 0x4D6 will be received
-				ID : 0x4D7 will be received
-				ID : 0x5D6 will be received
-				ID : 0x5D7 will be received
-				ID : 0x6D6 will be received
-				ID : 0x6D7 will be received
-				ID : 0x7D6 will be received
-				ID : 0x7D7 will be received
-				16 ID's will be received
+				Input IDs: [0X2D7, 0X2D6, 0X3D6, 0X4D6]
+				Output IDs: [0x0D6 0x0D7 0x1D6 0x1D7 0x2D6 0x2D7 0x3D6 0x3D7 0x4D6 0x4D7 0x5D6 0x5D7 0x6D6 0x6D7 0x7D6 0x7D7]
+				Result: [Filter: 0x0D6, Mask: 0x0FE]
 			*/
 			CAN.filter(0x0D6, 0x0FE);
 
-			/* Observe mode */
+			/* Observe mode. */
 			CAN.observe();
 
-			esp_intr_alloc(ETS_CAN_INTR_SOURCE, 0, EstymaCANClient::onInterruptWrapper, this, &eccCANInterruptHandle);
+			/* Set interrupt. */
+			esp_intr_alloc(ETS_CAN_INTR_SOURCE, 0, EstymaCANClient::staticInterruptWrapper, this, &eccCANInterruptHandle);
 		}
-	}
-
-	void EstymaCANClient::onInterruptWrapper(void* eccPtr)
-	{
-		((EstymaCANClient*)eccPtr)->handleInterrupt();
 	}
 
 	void EstymaCANClient::unbindCAN()
 	{
 		if (isBound)
 		{
+			/* Reset isBound flag. */
 			isBound = false;
 
+			/* Free interrupt. */
 			if (eccCANInterruptHandle)
 			{
 				esp_intr_free(eccCANInterruptHandle);
@@ -98,6 +86,7 @@ namespace comps
 			volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
 			*reg = (*reg & ~0x17) | 0x01;
 
+			/* Close CAN BUS interface. */
 			CAN.end();
 		}
 	}
@@ -132,12 +121,7 @@ namespace comps
 		return true;
 	}
 
-	bool EstymaCANClient::loop()
-	{
-		return true;
-	}
-
-	void EstymaCANClient::handleInterrupt()
+	void EstymaCANClient::handleCANBusInterrupt()
 	{
 		if (readCANReg(REG_IR) & 0x01) 
 		{
@@ -184,6 +168,11 @@ namespace comps
 				}
 			}
 		}
+	}
+
+	bool EstymaCANClient::loop()
+	{
+		return true;
 	}
 
 	EstymaCANClient::~EstymaCANClient()

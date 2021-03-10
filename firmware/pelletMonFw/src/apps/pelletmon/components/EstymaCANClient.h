@@ -15,8 +15,9 @@ namespace comps
 			double calculateTemperature(uint16_t x) const;
 			double calculateExhaustTemperature(uint16_t x) const;
 
-			static void onInterruptWrapper(void* eccPtr);
 			uint8_t readCANReg(uint8_t address) const;
+
+			static void staticInterruptWrapper(void* eccPtr);
 
 		public:
 			EstymaCANClient();
@@ -28,8 +29,8 @@ namespace comps
 			void unbindCAN();
 
 			bool init(class ksf::ksComposable* owner) override;
+			void handleCANBusInterrupt();
 			bool loop() override;
-			void handleInterrupt();
 
 			virtual ~EstymaCANClient();
 	};
