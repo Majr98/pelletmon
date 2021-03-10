@@ -3,17 +3,35 @@
 #include "../../../board.h"
 #include <CAN.h>
 
+/*
+	Input IDs: [0X2D7, 0X2D6, 0X3D6, 0X4D6]
+	Output IDs: [0x0D6 0x0D7 0x1D6 0x1D7 0x2D6 0x2D7 0x3D6 0x3D7 0x4D6 0x4D7 0x5D6 0x5D7 0x6D6 0x6D7 0x7D6 0x7D7]
+	Result: [Filter: 0x0D6, Mask: 0x0FE]
+*/
+
+#define ESTYMA_CAN_FLT_ID 0x0D6
+#define ESTYMA_CAN_FLT_MASK 0x0FE
+
+/* 
+	CAN Packet IDs.
+*/
 #define ESTYMA_CAN_ROTATIONS 0x2D7
 #define ESTYMA_CAN_TEMEPRATURES 0x2D6
 #define ESTYMA_CAN_CWUTEMPS 0x3D6
 #define ESTYMA_CAN_EXHAUST_TEMPS 0x4D6
 
+/*
+	CAN speed.
+*/
 #define ESTYMA_CAN_SPEED 125E3
 
-#define REG_BASE                   0x3ff6b000
-#define REG_RXERR                  0x0e
-#define REG_TXERR                  0x0f
-#define REG_IR                     0x03
+/*
+	CAN REGs for low level stuff.
+*/
+#define REG_BASE 0x3ff6b000
+#define REG_RXERR 0x0e
+#define REG_TXERR 0x0f
+#define REG_IR 0x03
 
 namespace comps
 {
@@ -22,11 +40,6 @@ namespace comps
 		((EstymaCANClient*)eccPtr)->handleCANBusInterrupt();
 	}
 
-	EstymaCANClient::EstymaCANClient()
-	{
-		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
-	}
-	
 	uint8_t EstymaCANClient::readCANReg(uint8_t address) const
 	{
 		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + address * 4);
@@ -43,6 +56,17 @@ namespace comps
 		return (unsigned int)readCANReg(REG_TXERR);
 	}
 
+	EstymaCANClient::EstymaCANClient()
+	{
+		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
+	}
+
+	bool EstymaCANClient::init(ksf::ksComposable* owner)
+	{
+		boilerStatusUpdater_wp = owner->findComponent<BoilerStatusUpdater>();
+		return true;
+	}
+	
 	void EstymaCANClient::bindCAN()
 	{
 		if (!isBound)
@@ -52,18 +76,14 @@ namespace comps
 
 			/* Start CAN BUS. */
 			CAN.begin(ESTYMA_CAN_SPEED);
-			
-			/*
-				Input IDs: [0X2D7, 0X2D6, 0X3D6, 0X4D6]
-				Output IDs: [0x0D6 0x0D7 0x1D6 0x1D7 0x2D6 0x2D7 0x3D6 0x3D7 0x4D6 0x4D7 0x5D6 0x5D7 0x6D6 0x6D7 0x7D6 0x7D7]
-				Result: [Filter: 0x0D6, Mask: 0x0FE]
-			*/
-			CAN.filter(0x0D6, 0x0FE);
+
+			/* Apply filter. */
+			CAN.filter(ESTYMA_CAN_FLT_ID, ESTYMA_CAN_FLT_MASK);
 
 			/* Observe mode. */
 			CAN.observe();
 
-			/* Set interrupt. */
+			/* Setup interrupt. */
 			esp_intr_alloc(ETS_CAN_INTR_SOURCE, 0, EstymaCANClient::staticInterruptWrapper, this, &eccCANInterruptHandle);
 		}
 	}
@@ -115,12 +135,6 @@ namespace comps
 		return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
 	}
 
-	bool EstymaCANClient::init(ksf::ksComposable* owner)
-	{
-		boilerStatusUpdater_wp = owner->findComponent<BoilerStatusUpdater>();
-		return true;
-	}
-
 	void EstymaCANClient::handleCANBusInterrupt()
 	{
 		if (readCANReg(REG_IR) & 0x01) 
@@ -135,7 +149,7 @@ namespace comps
 						{
 							unsigned short val;
 							CAN.readBytes((uint8_t*)&val, 2);
-							bsu_sp->rotations = val;
+							bsu_sp->updateUIntValue(UIntValueType::Rotations, val);
 						}
 						break;
 
@@ -144,8 +158,8 @@ namespace comps
 							uint16_t temps[4];
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
 
-							bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
-							bsu_sp->updateTemperature(TemperatureType::Boiler2, calculateTemperature(temps[1]));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_Boiler, calculateTemperature(temps[0]));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_Boiler2, calculateTemperature(temps[1]));
 						}
 						break;
 
@@ -153,7 +167,7 @@ namespace comps
 						{
 							uint16_t temps[4];
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-							bsu_sp->updateTemperature(TemperatureType::Cwu, calculateTemperature(temps[0]));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_PotableWater, calculateTemperature(temps[0]));
 						}
 						break;
 
@@ -161,18 +175,13 @@ namespace comps
 						{
 							uint16_t temps[4];
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-							bsu_sp->updateTemperature(TemperatureType::Exhaust, calculateExhaustTemperature(temps[3]));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_Exhaust, calculateExhaustTemperature(temps[3]));
 						}
 						break;
 					}
 				}
 			}
 		}
-	}
-
-	bool EstymaCANClient::loop()
-	{
-		return true;
 	}
 
 	EstymaCANClient::~EstymaCANClient()

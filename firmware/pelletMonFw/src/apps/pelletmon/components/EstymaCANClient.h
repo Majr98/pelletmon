@@ -30,7 +30,6 @@ namespace comps
 
 			bool init(class ksf::ksComposable* owner) override;
 			void handleCANBusInterrupt();
-			bool loop() override;
 
 			virtual ~EstymaCANClient();
 	};

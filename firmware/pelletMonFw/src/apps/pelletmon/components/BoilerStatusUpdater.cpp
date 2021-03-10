@@ -4,58 +4,76 @@
 
 namespace comps
 {
-	const char* BoilerStatusUpdater::tempChNames[TemperatureType::MAX] = { "boiler_temp", "boiler2_temp", "cwu_temp", "exhaust_temp" };
+	const char* BoilerStatusUpdater::floatChannelNames[FloatValueType::MAX] = { "boiler_temp", "boiler2_temp", "cwu_temp", "exhaust_temp" };
+	const char* BoilerStatusUpdater::uIntChannelNames[UIntValueType::MAX]	= { "rotations" };
 
 	BoilerStatusUpdater::BoilerStatusUpdater()
 	{
-		for (unsigned int i = 0; i < TemperatureType::MAX; ++i)
-			temperatures[i] = 0;
+		/* Set float values to zero. */
+		for (unsigned int i = 0; i < FloatValueType::MAX; ++i)
+			floatValues[i] = 0;
 
-		rotations = 0;
+		/* Set uint values to zero. */
+		for (unsigned int i = 0; i < UIntValueType::MAX; ++i)
+			uIntValues[i] = 0;
 	}
 
 	bool BoilerStatusUpdater::init(ksf::ksComposable* owner)
 	{
+		/* Grab weak pointer for MQTT Connector. */
 		mqtt_wp = owner->findComponent<ksf::ksMqttConnector>();
+
+		/* Grab weak pointer for Status LED */
 		led_wp = owner->findComponent<ksf::ksLed>();
 
 		return true;
 	}
 
-	void BoilerStatusUpdater::updateTemperature(TemperatureType::TYPE type, float value)
+	void BoilerStatusUpdater::updateFloatValue(FloatValueType::TYPE type, float value)
 	{
-		temperatures[type] = value;
+		/* Cache atomic float value. */
+		floatValues[type] = value;
 	}
 
-	void BoilerStatusUpdater::sendTemperatures(std::shared_ptr<ksf::ksMqttConnector>& mqtt_sp) const
+	void BoilerStatusUpdater::updateUIntValue(UIntValueType::TYPE type, unsigned int value)
 	{
-		for (unsigned int i = 0; i < TemperatureType::MAX; ++i)
-		{
-			String tempStr(temperatures[i], i == TemperatureType::Exhaust ? 0 : 1);
-			mqtt_sp->publish(tempChNames[i], tempStr, true);
-		}
+		/* Cache atomic unsigned int value. */
+		uIntValues[type] = value;
 	}
 
-	void BoilerStatusUpdater::sendStatus(std::shared_ptr<ksf::ksMqttConnector>& mqtt_sp) const
+	void BoilerStatusUpdater::sendValues(std::shared_ptr<ksf::ksMqttConnector>& mqtt_sp) const
 	{
+		/* Bling LED three times. */
 		if (auto led_sp = led_wp.lock())
 			led_sp->setBlinking(100, 3);
 
-		sendTemperatures(mqtt_sp);
-		mqtt_sp->publish("rotations", String(rotations), true);
+		/* Send cached float values to MQTT. */
+		for (unsigned int i = 0; i < FloatValueType::MAX; ++i)
+		{
+			String floatStr(floatValues[i], i == FloatValueType::Temperature_Exhaust ? 0 : 1);
+			mqtt_sp->publish(floatChannelNames[i], floatStr, true);
+		}
+
+		/* Send cached unsigned int values to MQTT. */
+		for (unsigned int i = 0; i < UIntValueType::MAX; ++i)
+		{
+			String uintStr(uIntValues[i]);
+			mqtt_sp->publish(uIntChannelNames[i], uintStr, true);
+		}
 	}
 
 	bool BoilerStatusUpdater::loop()
 	{
 		unsigned int ctime = millis();
 
+		/* If MQTT_STATUS_UPDATE_INTERVAL passed, send values to MQTT. */
 		if (ctime - lastPublishTime > MQTT_STATUS_UPDATE_INTERVAL)
 		{
 			if (auto mqtt_sp = mqtt_wp.lock())
 			{
 				if (mqtt_sp->isConnected())
 				{
-					sendStatus(mqtt_sp);
+					sendValues(mqtt_sp);
 					lastPublishTime = ctime;
 				}
 			}
