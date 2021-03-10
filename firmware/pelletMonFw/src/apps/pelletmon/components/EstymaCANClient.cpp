@@ -13,6 +13,7 @@
 #define REG_BASE                   0x3ff6b000
 #define REG_RXERR                  0x0e
 #define REG_TXERR                  0x0f
+#define REG_IR                     0x03
 
 namespace comps
 {
@@ -20,19 +21,21 @@ namespace comps
 	{
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
 	}
-
-	unsigned int EstymaCANClient::getRxErrorCount()
+	
+	uint8_t EstymaCANClient::readCANReg(uint8_t address) const
 	{
-		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + REG_RXERR * 4);
-		uint8_t regVal = *reg;
-		return (unsigned int)regVal;
+		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + address * 4);
+		return *reg;
 	}
 
-	unsigned int EstymaCANClient::getTxErrorCount()
+	unsigned int EstymaCANClient::getRxErrorCount() const
 	{
-		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + REG_TXERR * 4);
-		uint8_t regVal = *reg;
-		return (unsigned int)regVal;
+		return (unsigned int)readCANReg(REG_RXERR);
+	}
+
+	unsigned int EstymaCANClient::getTxErrorCount() const
+	{
+		return (unsigned int)readCANReg(REG_TXERR);
 	}
 
 	void EstymaCANClient::bindCAN()
@@ -69,7 +72,14 @@ namespace comps
 
 			/* Observe mode */
 			CAN.observe();
+
+			esp_intr_alloc(ETS_CAN_INTR_SOURCE, 0, EstymaCANClient::onInterruptWrapper, this, &eccCANInterruptHandle);
 		}
+	}
+
+	void EstymaCANClient::onInterruptWrapper(void* eccPtr)
+	{
+		((EstymaCANClient*)eccPtr)->handleInterrupt();
 	}
 
 	void EstymaCANClient::unbindCAN()
@@ -77,6 +87,12 @@ namespace comps
 		if (isBound)
 		{
 			isBound = false;
+
+			if (eccCANInterruptHandle)
+			{
+				esp_intr_free(eccCANInterruptHandle);
+				eccCANInterruptHandle = NULL;
+			}
 
 			/* Reset CAN device */
 			volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
@@ -118,52 +134,56 @@ namespace comps
 
 	bool EstymaCANClient::loop()
 	{
-		while (isBound && CAN.parsePacket() > 0)
+		return true;
+	}
+
+	void EstymaCANClient::handleInterrupt()
+	{
+		if (readCANReg(REG_IR) & 0x01) 
 		{
-			auto bsu_sp = boilerStatusUpdater_wp.lock();
-
-			if (!CAN.packetRtr() && bsu_sp)
+			if (CAN.parsePacket() > 0 && !CAN.packetRtr())
 			{
-				switch (CAN.packetId())
+				if (auto bsu_sp = boilerStatusUpdater_wp.lock())
 				{
-					case ESTYMA_CAN_ROTATIONS:
+					switch (CAN.packetId())
 					{
-						unsigned short val;
-						CAN.readBytes((uint8_t*)&val, 2);
-						bsu_sp->rotations = val;
-					}
-					break;
+						case ESTYMA_CAN_ROTATIONS:
+						{
+							unsigned short val;
+							CAN.readBytes((uint8_t*)&val, 2);
+							bsu_sp->rotations = val;
+						}
+						break;
 
-					case ESTYMA_CAN_TEMEPRATURES:
-					{
-						uint16_t temps[4];
-						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
+						case ESTYMA_CAN_TEMEPRATURES:
+						{
+							uint16_t temps[4];
+							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
 
-						bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
-						bsu_sp->updateTemperature(TemperatureType::Boiler2, calculateTemperature(temps[1]));
-					}
-					break;
+							bsu_sp->updateTemperature(TemperatureType::Boiler, calculateTemperature(temps[0]));
+							bsu_sp->updateTemperature(TemperatureType::Boiler2, calculateTemperature(temps[1]));
+						}
+						break;
 
-					case ESTYMA_CAN_CWUTEMPS:
-					{
-						uint16_t temps[4];
-						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-						bsu_sp->updateTemperature(TemperatureType::Cwu, calculateTemperature(temps[0]));
-					}
-					break;
+						case ESTYMA_CAN_CWUTEMPS:
+						{
+							uint16_t temps[4];
+							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
+							bsu_sp->updateTemperature(TemperatureType::Cwu, calculateTemperature(temps[0]));
+						}
+						break;
 
-					case ESTYMA_CAN_EXHAUST_TEMPS:
-					{
-						uint16_t temps[4];
-						CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-						bsu_sp->updateTemperature(TemperatureType::Exhaust, calculateExhaustTemperature(temps[3]));
+						case ESTYMA_CAN_EXHAUST_TEMPS:
+						{
+							uint16_t temps[4];
+							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
+							bsu_sp->updateTemperature(TemperatureType::Exhaust, calculateExhaustTemperature(temps[3]));
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
-
-		return true;
 	}
 
 	EstymaCANClient::~EstymaCANClient()
