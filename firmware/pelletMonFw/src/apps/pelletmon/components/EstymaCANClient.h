@@ -12,8 +12,8 @@ namespace comps
 			bool isBound = false;
 			intr_handle_t eccCANInterruptHandle = NULL;
 		
-			double calculateTemperature(uint16_t x) const;
-			double calculateExhaustTemperature(uint16_t x) const;
+			float calculateTemperature(uint16_t x) const;
+			float calculateExhaustTemperature(uint16_t x) const;
 
 			uint8_t readCANReg(uint8_t address) const;
 

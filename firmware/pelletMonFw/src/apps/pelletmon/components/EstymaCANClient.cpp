@@ -91,7 +91,7 @@ namespace comps
 		}
 	}
 
-	double EstymaCANClient::calculateTemperature(uint16_t x) const
+	float EstymaCANClient::calculateTemperature(uint16_t x) const
 	{
 		double a = 1.445633283634090E+02;
 		double b = -1.386947619796149E-01;
@@ -100,10 +100,10 @@ namespace comps
 		double e = 1.076415627857750E-11;
 		double f = -1.066640689001453E-15;
 
-		return a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5);
+		return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
 	}
 
-	double EstymaCANClient::calculateExhaustTemperature(uint16_t x) const
+	float EstymaCANClient::calculateExhaustTemperature(uint16_t x) const
 	{
 		double a = 7.371348541128694E+05;
 		double b = -1.577562311085309E+03;
@@ -112,7 +112,7 @@ namespace comps
 		double e = 1.224810606468546E-07;
 		double f = -1.041666667023733E-11;
 
-		return a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5);
+		return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
 	}
 
 	bool EstymaCANClient::init(ksf::ksComposable* owner)
