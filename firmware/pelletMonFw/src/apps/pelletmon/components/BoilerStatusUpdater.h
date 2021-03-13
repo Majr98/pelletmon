@@ -46,8 +46,8 @@ namespace comps
 		public:
 			BoilerStatusUpdater();
 
-			void updateFloatValue(FloatValueType::TYPE type, float value);
-			void updateUIntValue(UIntValueType::TYPE type, unsigned int value);
+			void ICACHE_RAM_ATTR updateFloatValue(FloatValueType::TYPE type, float value);
+			void ICACHE_RAM_ATTR updateUIntValue(UIntValueType::TYPE type, unsigned int value);
 
 			bool init(class ksf::ksComposable* owner) override;
 			bool loop() override;

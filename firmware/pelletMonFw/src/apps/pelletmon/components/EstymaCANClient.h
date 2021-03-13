@@ -1,6 +1,6 @@
 #pragma once
 #include <ksIotFrameworkLib.h>
-
+#include <atomic>
 namespace comps
 {
 	class BoilerStatusUpdater;
@@ -9,7 +9,7 @@ namespace comps
 		protected:
 			std::weak_ptr<BoilerStatusUpdater> boilerStatusUpdater_wp;
 
-			bool isBound = false;
+			std::atomic<bool> isBound = false;
 			intr_handle_t eccCANInterruptHandle = NULL;
 		
 			float calculateTemperature(uint16_t x) const;
@@ -17,7 +17,7 @@ namespace comps
 
 			uint8_t readCANReg(uint8_t address) const;
 
-			static void staticInterruptWrapper(void* eccPtr);
+			static void ICACHE_RAM_ATTR staticInterruptWrapper(void* eccPtr);
 
 		public:
 			EstymaCANClient();
@@ -29,7 +29,7 @@ namespace comps
 			void unbindCAN();
 
 			bool init(class ksf::ksComposable* owner) override;
-			void handleCANBusInterrupt();
+			void ICACHE_RAM_ATTR handleCANBusInterrupt();
 
 			virtual ~EstymaCANClient();
 	};

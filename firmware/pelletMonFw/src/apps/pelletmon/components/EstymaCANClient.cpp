@@ -35,7 +35,7 @@
 
 namespace comps
 {
-	void EstymaCANClient::staticInterruptWrapper(void* eccPtr)
+	void ICACHE_RAM_ATTR EstymaCANClient::staticInterruptWrapper(void* eccPtr)
 	{
 		((EstymaCANClient*)eccPtr)->handleCANBusInterrupt();
 	}
@@ -84,7 +84,7 @@ namespace comps
 			CAN.observe();
 
 			/* Setup interrupt. */
-			esp_intr_alloc(ETS_CAN_INTR_SOURCE, 0, EstymaCANClient::staticInterruptWrapper, this, &eccCANInterruptHandle);
+			esp_intr_alloc(ETS_CAN_INTR_SOURCE, ESP_INTR_FLAG_IRAM, EstymaCANClient::staticInterruptWrapper, this, &eccCANInterruptHandle);
 		}
 	}
 
@@ -135,7 +135,7 @@ namespace comps
 		return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
 	}
 
-	void EstymaCANClient::handleCANBusInterrupt()
+	void ICACHE_RAM_ATTR EstymaCANClient::handleCANBusInterrupt()
 	{
 		if (readCANReg(REG_IR) & 0x01) 
 		{

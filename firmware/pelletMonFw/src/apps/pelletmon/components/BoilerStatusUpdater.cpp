@@ -29,13 +29,13 @@ namespace comps
 		return true;
 	}
 
-	void BoilerStatusUpdater::updateFloatValue(FloatValueType::TYPE type, float value)
+	void ICACHE_RAM_ATTR BoilerStatusUpdater::updateFloatValue(FloatValueType::TYPE type, float value)
 	{
 		/* Cache atomic float value. */
 		floatValues[type] = value;
 	}
 
-	void BoilerStatusUpdater::updateUIntValue(UIntValueType::TYPE type, unsigned int value)
+	void ICACHE_RAM_ATTR BoilerStatusUpdater::updateUIntValue(UIntValueType::TYPE type, unsigned int value)
 	{
 		/* Cache atomic unsigned int value. */
 		uIntValues[type] = value;
