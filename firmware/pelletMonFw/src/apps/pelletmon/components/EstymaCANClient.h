@@ -9,7 +9,7 @@ namespace comps
 		protected:
 			std::weak_ptr<BoilerStatusUpdater> boilerStatusUpdater_wp;
 
-			std::atomic<bool> isBound = false;
+			bool isBound = false;
 			intr_handle_t eccCANInterruptHandle = NULL;
 		
 			float calculateTemperature(uint16_t x) const;
