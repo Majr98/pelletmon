@@ -1,5 +1,5 @@
 #include "src/apps/PelletMon/PelletMon.h"
-#include "src/apps/config/PelletMOnConfig.h"
+#include "src/apps/config/PelletMonConfig.h"
 
 // the setup function runs once when you press reset or power the board
 void setup()
