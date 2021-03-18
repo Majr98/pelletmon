@@ -9,7 +9,6 @@ namespace comps
 		enum TYPE
 		{
 			Temperature_Boiler,
-			Temperature_Boiler2,
 			Temperature_PotableWater,
 			Temperature_Exhaust,
 			MAX

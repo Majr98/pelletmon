@@ -159,7 +159,6 @@ namespace comps
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
 
 							bsu_sp->updateFloatValue(FloatValueType::Temperature_Boiler, calculateTemperature(temps[0]));
-							bsu_sp->updateFloatValue(FloatValueType::Temperature_Boiler2, calculateTemperature(temps[1]));
 						}
 						break;
 

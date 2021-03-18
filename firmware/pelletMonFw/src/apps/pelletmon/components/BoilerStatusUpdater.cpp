@@ -4,7 +4,7 @@
 
 namespace comps
 {
-	const char* BoilerStatusUpdater::floatChannelNames[FloatValueType::MAX] = { "boiler_temp", "boiler2_temp", "cwu_temp", "exhaust_temp" };
+	const char* BoilerStatusUpdater::floatChannelNames[FloatValueType::MAX] = { "boiler_temp", "cwu_temp", "exhaust_temp" };
 	const char* BoilerStatusUpdater::uIntChannelNames[UIntValueType::MAX]	= { "rotations" };
 
 	BoilerStatusUpdater::BoilerStatusUpdater()
