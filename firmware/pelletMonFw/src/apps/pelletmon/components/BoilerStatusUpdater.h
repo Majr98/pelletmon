@@ -26,8 +26,6 @@ namespace comps
 
 	class BoilerStatusUpdater : public ksf::ksComponent
 	{
-		friend class EstymaCANClient;
-
 		protected:
 			static const char* floatChannelNames[FloatValueType::MAX];
 			std::atomic<float> floatValues[FloatValueType::MAX];
@@ -40,7 +38,7 @@ namespace comps
 			std::weak_ptr<ksf::ksMqttConnector> mqtt_wp;
 			std::weak_ptr<ksf::ksLed> led_wp;
 
-			void sendValues(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp) const;
+			void sendTelemetryValues(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp) const;
 
 		public:
 			BoilerStatusUpdater();
@@ -48,7 +46,7 @@ namespace comps
 			void ICACHE_RAM_ATTR updateFloatValue(FloatValueType::TYPE type, float value);
 			void ICACHE_RAM_ATTR updateUIntValue(UIntValueType::TYPE type, unsigned int value);
 
-			bool init(class ksf::ksComposable* owner) override;
+			bool init(ksf::ksComposable* owner) override;
 			bool loop() override;
 	};
 }

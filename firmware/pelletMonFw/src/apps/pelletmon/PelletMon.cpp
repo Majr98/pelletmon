@@ -13,9 +13,9 @@ bool PelletMon::init()
 	addComponent<ksf::ksWifiConnector>(PelletMonConfig::pelletMonDeviceName);
 	addComponent<ksf::ksMqttDebugResponder>();
 
-	/* Cache weak pointers to mqttConnector and statusLed components. */
-	mqtt_wp = addComponent<ksf::ksMqttConnector>();
-	statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
+	/* Create mqttConnector and statusLed components. */
+	addComponent<ksf::ksMqttConnector>();
+	auto statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
 
 	/* Add CAN handler. */
 	addComponent<comps::BoilerStatusUpdater>();
@@ -31,16 +31,8 @@ bool PelletMon::init()
 
 	/* We want to unbind CAN before flash start. */
 	ArduinoOTA.onStart([=]() {
-		if (auto canclient_sp = canclient_wp.lock())
-			canclient_sp->unbindCAN();
+		otaStartEvent->broadcast();
 	});
-
-	/* Bind to MQTT events. */
-	if (auto mqtt_sp = mqtt_wp.lock())
-	{
-		mqtt_sp->onConnected->registerEvent(connEventHandle_sp, std::bind(&PelletMon::onMqttConnected, this));
-		mqtt_sp->onDisconnected->registerEvent(disEventHandle_sp, std::bind(&PelletMon::onMqttDisconnected, this));
-	}
 
 	/* Start blinking status led. It will be disabled when Mqtt connection is established (by onMqttConnected callback). */
 	if (auto statusLed_sp = statusLed_wp.lock())
@@ -48,28 +40,6 @@ bool PelletMon::init()
 
 	/* Application finished initialization, return true as it succedeed. */
 	return true;
-}
-
-void PelletMon::onMqttDisconnected()
-{
-	/* Start blinking status led on MQTT disconnect. */
-	if (auto statusLed_sp = statusLed_wp.lock())
-		statusLed_sp->setBlinking(500);
-
-	/* Unbind CAN on disconnect. */
-	if (auto canclient_sp = canclient_wp.lock())
-		canclient_sp->unbindCAN();
-}
-
-void PelletMon::onMqttConnected()
-{
-	/* Stop blinking status led on MQTT connect. */
-	if (auto statusLed_sp = statusLed_wp.lock())
-		statusLed_sp->setBlinking(0);
-
-	/* Bind CAN on connected. */
-	if (auto canclient_sp = canclient_wp.lock())
-		canclient_sp->bindCAN();
 }
 
 bool PelletMon::loop()

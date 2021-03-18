@@ -1,6 +1,7 @@
 #include "EstymaCANCLient.h"
 #include "BoilerStatusUpdater.h"
 #include "../../../board.h"
+#include "../PelletMon.h"
 #include <CAN.h>
 
 /*
@@ -63,8 +64,43 @@ namespace comps
 
 	bool EstymaCANClient::init(ksf::ksComposable* owner)
 	{
+		/* Grab components (weak pointers). */
 		boilerStatusUpdater_wp = owner->findComponent<BoilerStatusUpdater>();
+		mqtt_wp = owner->findComponent<ksf::ksMqttConnector>();
+		statusLed_wp = owner->findComponent<ksf::ksLed>();
+
+		/* Bind OTA start event (to unbind CAN when OTA starts). */
+		PelletMon* appObject = (PelletMon*)owner;
+		appObject->otaStartEvent->registerEvent(otaStartEventHandle_sp, std::bind(&EstymaCANClient::unbindCAN, this));
+
+		/* Bind to MQTT events. */
+		if (auto mqtt_sp = mqtt_wp.lock())
+		{
+			mqtt_sp->onConnected->registerEvent(connEventHandle_sp, std::bind(&EstymaCANClient::onMqttConnected, this));
+			mqtt_sp->onDisconnected->registerEvent(disEventHandle_sp, std::bind(&EstymaCANClient::onMqttDisconnected, this));
+		}
+
 		return true;
+	}
+
+	void EstymaCANClient::onMqttDisconnected()
+	{
+		/* Start blinking status led on MQTT disconnect. */
+		if (auto statusLed_sp = statusLed_wp.lock())
+			statusLed_sp->setBlinking(500);
+
+		/* Unbind CAN on disconnect. */
+		unbindCAN();
+	}
+
+	void EstymaCANClient::onMqttConnected()
+	{
+		/* Stop blinking status led on MQTT connect. */
+		if (auto statusLed_sp = statusLed_wp.lock())
+			statusLed_sp->setBlinking(0);
+
+		/* Bind CAN on connected. */
+		bindCAN();
 	}
 	
 	void EstymaCANClient::bindCAN()

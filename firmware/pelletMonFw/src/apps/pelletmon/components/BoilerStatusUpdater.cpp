@@ -41,7 +41,7 @@ namespace comps
 		uIntValues[type] = value;
 	}
 
-	void BoilerStatusUpdater::sendValues(std::shared_ptr<ksf::ksMqttConnector>& mqtt_sp) const
+	void BoilerStatusUpdater::sendTelemetryValues(std::shared_ptr<ksf::ksMqttConnector>& mqtt_sp) const
 	{
 		/* Bling LED three times. */
 		if (auto led_sp = led_wp.lock())
@@ -51,14 +51,14 @@ namespace comps
 		for (unsigned int i = 0; i < FloatValueType::MAX; ++i)
 		{
 			String floatStr(floatValues[i], i == FloatValueType::Temperature_Exhaust ? 0 : 1);
-			mqtt_sp->publish(floatChannelNames[i], floatStr, true);
+			mqtt_sp->publish(floatChannelNames[i], floatStr, false);
 		}
 
 		/* Send cached unsigned int values to MQTT. */
 		for (unsigned int i = 0; i < UIntValueType::MAX; ++i)
 		{
 			String uintStr(uIntValues[i]);
-			mqtt_sp->publish(uIntChannelNames[i], uintStr, true);
+			mqtt_sp->publish(uIntChannelNames[i], uintStr, false);
 		}
 	}
 
@@ -73,7 +73,7 @@ namespace comps
 			{
 				if (mqtt_sp->isConnected())
 				{
-					sendValues(mqtt_sp);
+					sendTelemetryValues(mqtt_sp);
 					lastPublishTime = ctime;
 				}
 			}
