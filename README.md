@@ -19,6 +19,7 @@ The project will have its own PCB. Communication with the outside world will be 
 
 
 ## SOFTWARE
+- hardcoded CAN support.
 
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
