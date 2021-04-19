@@ -21,6 +21,7 @@ The project will have its own PCB. Communication with the outside world will be 
 ## SOFTWARE
 - Hardcoded CAN support.
 - Sometimes at boot sends "zero" values to MQTT.
+- No support for fuel level sensor.
 
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
