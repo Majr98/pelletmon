@@ -25,9 +25,9 @@ The project will have its own PCB. Communication with the outside world will be 
 
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
+![Device 1](pics/pcb_shot1.jpg "Device 2")
 ![Board design right](renders/PelletMon2.jpg "Board design right")
-![Device 1](pics/device_setup.png "Device 1")
-![Device 2](pics/pcb_shot1.jpg "Device 2")
+![Device 2](pics/device_setup.png "Device 1")
 
 # Special thanks
 - M-Works [ https://m-works.net/ ]
