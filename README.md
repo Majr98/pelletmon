@@ -19,7 +19,8 @@ The project will have its own PCB. Communication with the outside world will be 
 
 
 ## SOFTWARE
-- hardcoded CAN support.
+- Hardcoded CAN support.
+- Sometimes at boot sends "zero" values to MQTT.
 
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
