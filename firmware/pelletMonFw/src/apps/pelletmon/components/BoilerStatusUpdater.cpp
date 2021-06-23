@@ -16,6 +16,8 @@ namespace comps
 		/* Set uint values to zero. */
 		for (unsigned int i = 0; i < UIntValueType::MAX; ++i)
 			uIntValues[i] = 0;
+
+		hasData = false;
 	}
 
 	bool BoilerStatusUpdater::init(ksf::ksComposable* owner)
@@ -31,12 +33,18 @@ namespace comps
 
 	void ICACHE_RAM_ATTR BoilerStatusUpdater::updateFloatValue(FloatValueType::TYPE type, float value)
 	{
+		/* Cache atomic hasData flag. */
+		hasData = true;
+
 		/* Cache atomic float value. */
 		floatValues[type] = value;
 	}
 
 	void ICACHE_RAM_ATTR BoilerStatusUpdater::updateUIntValue(UIntValueType::TYPE type, unsigned int value)
 	{
+		/* Cache atomic hasData flag. */
+		hasData = true;
+
 		/* Cache atomic unsigned int value. */
 		uIntValues[type] = value;
 	}
@@ -60,6 +68,9 @@ namespace comps
 			String uintStr(uIntValues[i]);
 			mqtt_sp->publish(uIntChannelNames[i], uintStr, false);
 		}
+
+		/* Send ESP chip temperature to MQTT. */
+		mqtt_sp->publish("chip_temp", String(temperatureRead(), 1), false);
 	}
 
 	bool BoilerStatusUpdater::loop()
@@ -73,8 +84,14 @@ namespace comps
 			{
 				if (mqtt_sp->isConnected())
 				{
-					sendTelemetryValues(mqtt_sp);
-					lastPublishTime = ctime;
+					if (hasData)
+					{
+						sendTelemetryValues(mqtt_sp);
+						lastPublishTime = ctime;
+
+						/* Reset atomic hasData flag. */
+						hasData = false;
+					}
 				}
 			}
 		}

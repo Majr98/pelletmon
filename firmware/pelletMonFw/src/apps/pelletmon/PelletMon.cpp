@@ -27,6 +27,7 @@ bool PelletMon::init()
 
 	/* ArduinoOTA is allowed to start AFTER app initialization, because tcpip must be initialized. */
 	ArduinoOTA.begin();
+	ArduinoOTA.setHostname(PelletMonConfig::pelletMonDeviceName);
 	ArduinoOTA.setPassword("ota_ksiotframework");
 
 	/* We want to unbind CAN before flash start. */

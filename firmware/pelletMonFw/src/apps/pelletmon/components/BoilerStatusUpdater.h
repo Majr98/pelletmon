@@ -27,6 +27,7 @@ namespace comps
 	class BoilerStatusUpdater : public ksf::ksComponent
 	{
 		protected:
+			
 			static const char* floatChannelNames[FloatValueType::MAX];
 			std::atomic<float> floatValues[FloatValueType::MAX];
 
@@ -37,6 +38,8 @@ namespace comps
 
 			std::weak_ptr<ksf::ksMqttConnector> mqtt_wp;
 			std::weak_ptr<ksf::ksLed> led_wp;
+
+			std::atomic<bool> hasData;
 
 			void sendTelemetryValues(std::shared_ptr<class ksf::ksMqttConnector>& mqtt_sp) const;
 
