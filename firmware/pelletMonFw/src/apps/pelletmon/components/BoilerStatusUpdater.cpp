@@ -68,9 +68,6 @@ namespace comps
 			String uintStr(uIntValues[i]);
 			mqtt_sp->publish(uIntChannelNames[i], uintStr, false);
 		}
-
-		/* Send ESP chip temperature to MQTT. */
-		mqtt_sp->publish("chip_temp", String(temperatureRead(), 1), false);
 	}
 
 	bool BoilerStatusUpdater::loop()
