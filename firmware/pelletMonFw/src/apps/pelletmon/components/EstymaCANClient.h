@@ -4,6 +4,18 @@
 namespace comps
 {
 	class BoilerStatusUpdater;
+
+	namespace EstymaTempSensorType
+	{
+		enum TYPE
+		{
+			CTZ_01,
+			CT_2A,
+			CTP_02,
+			CT_3B
+		};
+	}
+
 	class EstymaCANClient : public ksf::ksComponent
 	{
 		protected:
@@ -15,9 +27,9 @@ namespace comps
 
 			bool isBound = false;
 			intr_handle_t eccCANInterruptHandle = NULL;
-		
-			float calculateTemperature(uint16_t x) const;
-			float calculateExhaustTemperature(uint16_t x) const;
+
+			double calcSteinhart(double a, double b, double c, double r1, double x) const;
+			float calculateTemperature(uint16_t adcValue, EstymaTempSensorType::TYPE sensorType) const;
 
 			uint8_t readCANReg(uint8_t address) const;
 
