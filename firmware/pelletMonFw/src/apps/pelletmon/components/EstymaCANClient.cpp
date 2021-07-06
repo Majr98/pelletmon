@@ -22,11 +22,6 @@
 #define ESTYMA_CAN_EXHAUST_TEMPS 0x4D6
 
 /*
-	Estyma constants
-*/
-#define ESTYMA_MAX_ADC 4096
-
-/*
 	CAN speed.
 */
 #define ESTYMA_CAN_SPEED 125E3
@@ -35,10 +30,7 @@
 	CAN REGs for low level stuff.
 */
 #define REG_BASE 0x3ff6b000
-#define REG_RXERR 0x0e
-#define REG_TXERR 0x0f
 #define REG_IR 0x03
-
 
 namespace comps
 {
@@ -51,16 +43,6 @@ namespace comps
 	{
 		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + address * 4);
 		return *reg;
-	}
-
-	unsigned int EstymaCANClient::getRxErrorCount() const
-	{
-		return (unsigned int)readCANReg(REG_RXERR);
-	}
-
-	unsigned int EstymaCANClient::getTxErrorCount() const
-	{
-		return (unsigned int)readCANReg(REG_TXERR);
 	}
 
 	EstymaCANClient::EstymaCANClient()
@@ -153,46 +135,28 @@ namespace comps
 		}
 	}
 
-	double EstymaCANClient::calcSteinhart(double a, double b, double c, double r1, double adcValue) const
+	float EstymaCANClient::calculateTemperature(uint16_t x) const
 	{
-		if (adcValue == 0)
-			return -1;
+		double a = 1.445633283634090E+02;
+		double b = -1.386947619796149E-01;
+		double c = 9.837913934334235E-05;
+		double d = -4.486094388070098E-08;
+		double e = 1.076415627857750E-11;
+		double f = -1.066640689001453E-15;
 
-		double out = r1 / ((ESTYMA_MAX_ADC / adcValue) - 1);
-		out = log(out);
-		out = 1 / (a + (b * out) + (c * out * out * out));
-		out = out - 273.15; //kelvin -> C
-
-		return out;
+		return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
 	}
 
-	float EstymaCANClient::calculateTemperature(uint16_t x, EstymaTempSensorType::TYPE sensorType) const
+	float EstymaCANClient::calculateExhaustTemperature(uint16_t x) const
 	{
-		switch (sensorType)
-		{
-			case EstymaTempSensorType::CTZ_01:
-				return float(calcSteinhart(0.0011208042234177183, 0.00023594374882238768, 7.691712089606158e-08, 5600, (double)x));
+		double a = 7.371348541128694E+05;
+		double b = -1.577562311085309E+03;
+		double c = 1.348102462543938E+00;
+		double d = -5.750965910950425E-04;
+		double e = 1.224810606468546E-07;
+		double f = -1.041666667023733E-11;
 
-			case EstymaTempSensorType::CT_2A:
-				return float(calcSteinhart(0.0011564185977441998, 0.00023068024722086485, 9.211044198139721e-08, 5600, (double)x));
-
-			case EstymaTempSensorType::CTP_02:
-				return float(calcSteinhart(0.0011253594028199955, 0.00023465690855340802, 8.677321444094342e-08, 5600, (double)x));
-
-			case EstymaTempSensorType::CT_3B:
-			{
-				double a = 7.371348541128694E+05;
-				double b = -1.577562311085309E+03;
-				double c = 1.348102462543938E+00;
-				double d = -5.750965910950425E-04;
-				double e = 1.224810606468546E-07;
-				double f = -1.041666667023733E-11;
-
-				return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
-			}
-		}
-
-		return -1;
+		return float(a + b * x + c * pow(x, 2) + d * pow(x, 3) + e * pow(x, 4) + f * pow(x, 5));
 	}
 
 	void ICACHE_RAM_ATTR EstymaCANClient::handleCANBusInterrupt()
@@ -217,8 +181,7 @@ namespace comps
 						{
 							uint16_t temps[4];
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-
-							bsu_sp->updateFloatValue(FloatValueType::Temperature_Boiler, calculateTemperature(temps[1], EstymaTempSensorType::CT_2A));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_Boiler, calculateTemperature(temps[0]));
 						}
 						break;
 
@@ -226,7 +189,7 @@ namespace comps
 						{
 							uint16_t temps[4];
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-							bsu_sp->updateFloatValue(FloatValueType::Temperature_PotableWater, calculateTemperature(temps[0], EstymaTempSensorType::CT_2A));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_PotableWater, calculateTemperature(temps[0]));
 						}
 						break;
 
@@ -234,7 +197,7 @@ namespace comps
 						{
 							uint16_t temps[4];
 							CAN.readBytes((uint8_t*)&temps, sizeof(temps));
-							bsu_sp->updateFloatValue(FloatValueType::Temperature_Exhaust, calculateTemperature(temps[3], EstymaTempSensorType::CT_3B));
+							bsu_sp->updateFloatValue(FloatValueType::Temperature_Exhaust, calculateExhaustTemperature(temps[3]));
 						}
 						break;
 					}
