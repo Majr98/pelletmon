@@ -4,17 +4,15 @@
 
 namespace comps
 {
-	class EstymaCANClient;
+	class CanService;
 }
 
 class PelletMon : public ksf::ksApplication
 {
 	protected:
-		std::weak_ptr<comps::EstymaCANClient> canclient_wp;
+		std::weak_ptr<comps::CanService> canService_wp;
 
 	public:
-		DECLARE_KS_EVENT(otaStartEvent)
-
 		bool init() override;
 		bool loop() override;
 };

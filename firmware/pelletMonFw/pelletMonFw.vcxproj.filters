@@ -8,14 +8,17 @@
     <ClInclude Include="src\apps\pelletmon\PelletMon.h">
       <Filter>src\apps\pelletmon</Filter>
     </ClInclude>
-    <ClInclude Include="src\apps\pelletmon\components\EstymaCANClient.h">
+    <ClInclude Include="src\apps\pelletmon\components\EstymaClient.h">
       <Filter>src\apps\pelletmon\comps</Filter>
     </ClInclude>
     <ClInclude Include="src\apps\config\PelletMonConfig.h">
       <Filter>src\apps\config</Filter>
     </ClInclude>
-    <ClInclude Include="src\apps\pelletmon\components\BoilerStatusUpdater.h">
+    <ClInclude Include="src\apps\pelletmon\components\CanService.h">
       <Filter>src\apps\pelletmon\comps</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\pelletmon\misc\SensorUtils.h">
+      <Filter>src\apps\pelletmon\misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -34,19 +37,25 @@
     <Filter Include="src\apps\config">
       <UniqueIdentifier>{fb956527-b30d-4481-a386-0ec19321b3ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\apps\pelletmon\misc">
+      <UniqueIdentifier>{2f09a9d7-0cb9-4cf1-9644-5183a018df66}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\apps\pelletmon\PelletMon.cpp">
       <Filter>src\apps\pelletmon</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\pelletmon\components\EstymaCANClient.cpp">
+    <ClCompile Include="src\apps\pelletmon\components\EstymaClient.cpp">
       <Filter>src\apps\pelletmon\comps</Filter>
     </ClCompile>
     <ClCompile Include="src\apps\config\PelletMonConfig.cpp">
       <Filter>src\apps\config</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\pelletmon\components\BoilerStatusUpdater.cpp">
+    <ClCompile Include="src\apps\pelletmon\components\CanService.cpp">
       <Filter>src\apps\pelletmon\comps</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\pelletmon\misc\SensorUtils.cpp">
+      <Filter>src\apps\pelletmon\misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
