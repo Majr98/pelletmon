@@ -9,10 +9,11 @@ namespace comps
 			std::weak_ptr<CanService> canService_wp;
 			std::weak_ptr<ksf::ksMqttConnector> mqttConn_wp;
 			std::weak_ptr<ksf::ksLed> statusLed_wp;
-			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, otaStartEventHandle_sp;
-
-			void onMqttDisconnected();
+			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, debugMessageEventHandle_sp;
+			
 			void onMqttConnected();
+			void onMqttDisconnected();
+			void onDebugMessage(ksf::ksMqttDebugResponder*, const String& message, bool& consumed);
 
 		public:
 			bool init(ksf::ksComposable* owner) override;

@@ -3,6 +3,7 @@
 #include "../misc/SensorUtils.h"
 
 using namespace misc;
+using namespace std::placeholders;
 
 /* 
 	CAN Packet IDs.
@@ -36,6 +37,10 @@ namespace comps
 		/* Grab weak pointer for LED. */
 		statusLed_wp = owner->findComponent<ksf::ksLed>();
 
+		/* Bind to debug responder message. */
+		if (auto mqttdc_sp = owner->findComponent<ksf::ksMqttDebugResponder>().lock())
+			mqttdc_sp->customDebugHandler->registerEvent(debugMessageEventHandle_sp, std::bind(&EstymaClient::onDebugMessage, this, _1, _2, _3));
+
 		/* Bind to MQTT events. */
 		if (auto mqtt_sp = mqttConn_wp.lock())
 		{
@@ -44,17 +49,6 @@ namespace comps
 		}
 
 		return true;
-	}
-
-	void EstymaClient::onMqttDisconnected()
-	{
-		/* Start blinking status led on MQTT disconnect. */
-		if (auto statusLed_sp = statusLed_wp.lock())
-			statusLed_sp->setBlinking(500);
-
-		/* Stop CAN service. */
-		if (auto canService_sp = canService_wp.lock())
-			canService_sp->StopService();
 	}
 
 	void EstymaClient::onMqttConnected()
@@ -79,6 +73,36 @@ namespace comps
 			statusLed_sp->setBlinking(0);
 	}
 
+	void EstymaClient::onMqttDisconnected()
+	{
+		/* Start blinking status led on MQTT disconnect. */
+		if (auto statusLed_sp = statusLed_wp.lock())
+			statusLed_sp->setBlinking(500);
+
+		/* Stop CAN service. */
+		if (auto canService_sp = canService_wp.lock())
+			canService_sp->StopService();
+	}
+
+	void EstymaClient::onDebugMessage(ksf::ksMqttDebugResponder* responder, const String& message, bool& consumed)
+	{
+		if (message.equals("test_pellet"))
+		{
+			responder->respond("test pellet ok!");
+			consumed = true;
+		}
+		else if (message.equals("cdis"))
+		{
+			responder->respond("disable controller not implemented yet!");
+			consumed = true;
+		}
+		else if (message.equals("cen"))
+		{
+			responder->respond("enable controller not implemented yet!");
+			consumed = true;
+		}
+	}
+
 	bool EstymaClient::loop()
 	{
 		if (auto canService_sp = canService_wp.lock())
@@ -87,7 +111,7 @@ namespace comps
 			if (canService_sp->ReceiveMessage(incommingMessage))
 			{
 				if (auto statusLed_sp = statusLed_wp.lock())
-					statusLed_sp->setBlinking(100);
+					statusLed_sp->setBlinking(50, 3);
 
 				if (auto mqttConnection = mqttConn_wp.lock())
 				{
