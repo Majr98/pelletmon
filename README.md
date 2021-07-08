@@ -20,7 +20,7 @@ The project will have its own PCB. Communication with the outside world will be 
 
 ## SOFTWARE
 - Hardcoded CAN support.
-- Sometimes at boot sends "zero" values to MQTT.
+- <s>Sometimes at boot sends "zero" values to MQTT.</s>
 - No support for fuel level sensor.
 
 # PICS
