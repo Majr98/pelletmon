@@ -18,18 +18,24 @@ namespace comps
 
 	void ICACHE_RAM_ATTR CanService::staticInterruptWrapper(void* serviceObject)
 	{
-		((CanService*)serviceObject)->handleCANBusInterrupt();
+		((CanService*)serviceObject)->handleCanIntterupt();
 	}
 
-	uint8_t ICACHE_RAM_ATTR CanService::readCANReg(uint8_t address) const
+	uint8_t ICACHE_RAM_ATTR CanService::readCanRegistry(uint8_t address) const
 	{
 		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + address * 4);
 		return *reg;
 	}
-
-	void ICACHE_RAM_ATTR CanService::handleCANBusInterrupt()
+	
+	void ICACHE_RAM_ATTR CanService::resetCan()
 	{
-		if (readCANReg(REG_IR) & 0x01)
+		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
+		*reg = (*reg & ~0x17) | 0x01;
+	}
+
+	void ICACHE_RAM_ATTR CanService::handleCanIntterupt()
+	{
+		if (readCanRegistry(REG_IR) & 0x01)
 		{
 			if (CAN.parsePacket() > 0 && !CAN.packetRtr())
 			{
@@ -58,7 +64,7 @@ namespace comps
 
 	bool CanService::StartService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int subscribeInfoLen)
 	{
-		if (canInterruptHandle == nullptr)
+		if (!canInterruptHandle)
 		{
 			/* Start CAN BUS. */
 			if (CAN.begin(canServiceSpeed))
@@ -100,16 +106,14 @@ namespace comps
 		/* Free interrupt. */
 		if (canInterruptHandle)
 		{
+			/* Free interrupt and queue. */
 			esp_intr_free(canInterruptHandle);
 			canInterruptHandle = nullptr;
 			vQueueDelete(rxQueueHandle);
 			rxQueueHandle = nullptr;
 
-			/* Reset CAN device */
-			volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
-			*reg = (*reg & ~0x17) | 0x01;
-
-			/* Close CAN BUS interface. */
+			/* Reset CAN device and close interface. */
+			resetCan();
 			CAN.end();
 
 			/* Clear message list. */
