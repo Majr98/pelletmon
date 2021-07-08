@@ -33,14 +33,15 @@ namespace comps
 	{
 		private:
 			static void ICACHE_RAM_ATTR staticInterruptWrapper(void* serviceObject);
-			void ICACHE_RAM_ATTR handleCANBusInterrupt();
+			void ICACHE_RAM_ATTR handleCanIntterupt();
+			
+			uint8_t readCanRegistry(uint8_t address) const;
+			void resetCan();
 
 			intr_handle_t canInterruptHandle = nullptr;
 			QueueHandle_t rxQueueHandle = nullptr;
 
 			std::vector<CanServiceSubscribeEntry> subscribedMessages;
-
-			uint8_t readCANReg(uint8_t address) const;
 
 		public:
 			bool init(ksf::ksComposable* owner) override;
