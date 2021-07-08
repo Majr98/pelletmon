@@ -35,7 +35,7 @@ namespace comps
 			static void ICACHE_RAM_ATTR staticInterruptWrapper(void* serviceObject);
 			void ICACHE_RAM_ATTR handleCanIntterupt();
 			
-			uint8_t readCanRegistry(uint8_t address) const;
+			uint8_t ICACHE_RAM_ATTR readCanRegistry(uint8_t address) const;
 			void resetCan();
 
 			intr_handle_t canInterruptHandle = nullptr;
