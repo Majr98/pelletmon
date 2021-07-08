@@ -115,10 +115,15 @@ namespace comps
 				consumed = true;
 			}
 
-			/* Blink LED if handled command. */
 			if (consumed)
+			{
+				/* Execute setting change. */
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x10\x10\x01", 4 });
+
+				/* Blink LED - handled command. */
 				if (auto statusLed_sp = statusLed_wp.lock())
 					statusLed_sp->setBlinking(100, 4);
+			}
 		}
 	}
 
