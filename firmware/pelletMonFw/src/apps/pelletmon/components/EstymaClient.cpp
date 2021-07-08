@@ -5,24 +5,14 @@
 using namespace misc;
 using namespace std::placeholders;
 
-/* 
-	CAN Packet IDs.
-*/
+/* CAN packet ids */
 #define ESTYMA_CAN_ROTATIONS 0x2D7
 #define ESTYMA_CAN_TEMEPRATURES 0x2D6
 #define ESTYMA_CAN_CWUTEMPS 0x3D6
 #define ESTYMA_CAN_EXHAUST_TEMPS 0x4D6
 
-/*
-	CAN speed.
-*/
+/* CAN speed */
 #define ESTYMA_CAN_SPEED 125E3
-
-/*
-	CAN REGs for low level stuff.
-*/
-#define REG_BASE 0x3ff6b000
-#define REG_IR 0x03
 
 namespace comps
 {
