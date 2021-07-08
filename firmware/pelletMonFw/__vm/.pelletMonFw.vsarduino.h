@@ -90,7 +90,10 @@ typedef long pthread_mutex_t;
 typedef long pthread_mutex_t;
 typedef long pthread_cond_t;
 
+#define __CHAR_BIT__ 1
 
+// Ensure ArduinoJSON Lib Intellisense works correctly
+#define ARDUINOJSON_ENABLE_STD_STREAM 0
 
 #include "arduino.h"
 #include <pins_arduino.h> 

@@ -6,7 +6,7 @@ namespace misc
 	{
 		enum TYPE
 		{
-			CT2A,
+			CT2A = 0,
 			CT3A,
 			ST_MAX
 		};

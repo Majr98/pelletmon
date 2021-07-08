@@ -33,7 +33,7 @@ bool PelletMon::init()
 	/* We want to unbind CAN before flash start. */
 	ArduinoOTA.onStart([=]() {
 		if (auto canService_sp = canService_wp.lock())
-			canService_sp->StopService();
+			canService_sp->stopService();
 	});
 
 	/* Start blinking status led. It will be disabled when Mqtt connection is established (by onMqttConnected callback). */

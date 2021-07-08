@@ -46,9 +46,9 @@ namespace comps
 		public:
 			bool init(ksf::ksComposable* owner) override;
 
-			bool StartService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int subscribeInfoLen);
-			bool ReceiveMessage(CanMessage& outMessage);
-			void StopService();
+			bool startService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int subscribeInfoLen);
+			bool receiveMessage(CanMessage& outMessage);
+			void stopService();
 
 			virtual ~CanService();
 	};

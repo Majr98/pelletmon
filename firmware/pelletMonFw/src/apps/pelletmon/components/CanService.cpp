@@ -12,12 +12,14 @@ namespace comps
 {
 	bool CanService::init(ksf::ksComposable* owner)
 	{
+		/* Setup interface pins. */
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
 		return true;
 	}
 
 	void ICACHE_RAM_ATTR CanService::staticInterruptWrapper(void* serviceObject)
 	{
+		/* Jump to member function. */
 		((CanService*)serviceObject)->handleCanIntterupt();
 	}
 
@@ -29,42 +31,49 @@ namespace comps
 
 	void ICACHE_RAM_ATTR CanService::handleCanIntterupt()
 	{
-		if (readCanRegistry(REG_IR) & 0x01)
+		/* Check if tis is interrupt. */
+		if (!(readCanRegistry(REG_IR) & 0x01)) 
+			return;
+
+		/* Check if packet is valid and skip RTRs. */
+		if (CAN.parsePacket() > 0 && !CAN.packetRtr())
 		{
-			if (CAN.parsePacket() > 0 && !CAN.packetRtr())
+			BaseType_t xHigherPriorityTaskWoken;
+			auto ctime = millis();
+
+			/* Iterate over all subscribed messages. */
+			for (auto& subMsg : subscribedMessages)
 			{
-				BaseType_t xHigherPriorityTaskWoken;
-				auto ctime = millis();
-
-				for (auto& subMsg : subscribedMessages)
+				/* If packet matches subscribed one, then check if it should be queued (based on period). */
+				if ((CAN.packetId() == subMsg.frameId) && ((subMsg.period == 0) || (millis() - subMsg.lastTick > subMsg.period)))
 				{
-					if (CAN.packetId() == subMsg.frameId)
-					{
-						if (millis() - subMsg.lastTick > subMsg.period)
-						{
-							subMsg.lastTick = ctime;
+					/* Update last tick to current time. */
+					subMsg.lastTick = ctime;
 
-							uint64_t data = 0;
-							CAN.readBytes((uint8_t*)&data, CAN.packetDlc());
-							CanMessage msg{ CAN.packetId(), (uint8_t)CAN.packetDlc(), data };
+					/* Prepare CanMessage for packet. */
+					uint64_t data = 0;
+					CAN.readBytes((uint8_t*)&data, CAN.packetDlc());
+					CanMessage msg{ CAN.packetId(), (uint8_t)CAN.packetDlc(), data };
 
-							xQueueSendFromISR(rxQueueHandle, &msg, &xHigherPriorityTaskWoken);
-						}
-					}
+					/* Queue CanMessage to rxQueue. */
+					xQueueSendFromISR(rxQueueHandle, &msg, &xHigherPriorityTaskWoken);
 				}
 			}
 		}
 	}
 
-	bool CanService::StartService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int subscribeInfoLen)
+	bool CanService::startService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int sizeofSubscribeInfo)
 	{
 		if (!canInterruptHandle)
 		{
+			/* Calculate item count. */
+			unsigned int subscribeInfoCount = sizeofSubscribeInfo / sizeof(CanServiceSubscribeInfo);
+
 			/* Start CAN BUS. */
 			if (CAN.begin(canServiceSpeed))
 			{
 				/* Fill subscription list. */
-				for (unsigned int i = 0; i < subscribeInfoLen; ++i)
+				for (unsigned int i = 0; i < subscribeInfoCount; ++i)
 				{
 					auto& csi = subscribeInfo[i];
 					subscribedMessages.push_back({csi.frameId, csi.period, 0});
@@ -86,7 +95,7 @@ namespace comps
 		return false;
 	}
 
-	bool CanService::ReceiveMessage(CanMessage& outMessage)
+	bool CanService::receiveMessage(CanMessage& outMessage)
 	{
 		/* If we have canInterruptHandle, then simply receive from queue. */
 		if (canInterruptHandle)
@@ -101,7 +110,7 @@ namespace comps
 		*reg = (*reg & ~0x17) | 0x01;
 	}
 
-	void CanService::StopService()
+	void CanService::stopService()
 	{
 		/* Free interrupt. */
 		if (canInterruptHandle)
@@ -123,6 +132,6 @@ namespace comps
 
 	CanService::~CanService()
 	{
-		StopService();
+		stopService();
 	}
 }

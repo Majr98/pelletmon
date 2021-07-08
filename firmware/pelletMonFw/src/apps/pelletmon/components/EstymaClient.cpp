@@ -55,7 +55,7 @@ namespace comps
 			};
 
 			/* Start CAN service. */
-			canService->StartService(ESTYMA_CAN_SPEED, subMsgs, sizeof(subMsgs) / sizeof(CanServiceSubscribeInfo));
+			canService->startService(ESTYMA_CAN_SPEED, subMsgs, sizeof(subMsgs));
 		}
 
 		/* Stop blinking status led on MQTT connect. */
@@ -71,7 +71,7 @@ namespace comps
 
 		/* Stop CAN service. */
 		if (auto canService_sp = canService_wp.lock())
-			canService_sp->StopService();
+			canService_sp->stopService();
 	}
 
 	void EstymaClient::onDebugMessage(ksf::ksMqttDebugResponder* responder, const String& message, bool& consumed)
@@ -98,11 +98,8 @@ namespace comps
 		if (auto canService_sp = canService_wp.lock())
 		{
 			CanMessage incommingMessage;
-			if (canService_sp->ReceiveMessage(incommingMessage))
+			if (canService_sp->receiveMessage(incommingMessage))
 			{
-				if (auto statusLed_sp = statusLed_wp.lock())
-					statusLed_sp->setBlinking(50, 3);
-
 				if (auto mqttConnection = mqttConn_wp.lock())
 				{
 					switch (incommingMessage.frameId)
@@ -128,6 +125,10 @@ namespace comps
 						break;
 					}
 				}
+
+				/* Blink LED on each recevied packet. */
+				if (auto statusLed_sp = statusLed_wp.lock())
+					statusLed_sp->setBlinking(75, 2);
 			}
 		}
 
