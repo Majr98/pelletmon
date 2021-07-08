@@ -82,14 +82,24 @@ namespace comps
 				/* Creqte RX queue. */
 				rxQueueHandle = xQueueCreate(10, sizeof(CanMessage));
 
-				/* Observe mode. */
-				CAN.observe();
-
 				/* Setup interrupt. */
 				esp_intr_alloc(ETS_CAN_INTR_SOURCE, ESP_INTR_FLAG_IRAM, CanService::staticInterruptWrapper, this, &canInterruptHandle);
 
 				return true;
 			}
+		}
+
+		return false;
+	}
+
+	bool CanService::sendMessage(const CanMessage& inMessage) const
+	{
+		/* If we have canInterruptHandle, then we know we can send message. */
+		if (canInterruptHandle)
+		{
+			CAN.beginPacket(inMessage.frameId, inMessage.dataLen);
+			CAN.write(inMessage.u8, inMessage.dataLen);
+			CAN.endPacket();
 		}
 
 		return false;

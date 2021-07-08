@@ -76,20 +76,49 @@ namespace comps
 
 	void EstymaClient::onDebugMessage(ksf::ksMqttDebugResponder* responder, const String& message, bool& consumed)
 	{
-		if (message.equals("test_pellet"))
+		if (auto canService_sp = canService_wp.lock())
 		{
-			responder->respond("test pellet ok!");
-			consumed = true;
-		}
-		else if (message.equals("cdis"))
-		{
-			responder->respond("disable controller not implemented yet!");
-			consumed = true;
-		}
-		else if (message.equals("cen"))
-		{
-			responder->respond("enable controller not implemented yet!");
-			consumed = true;
+			if (message.equals("coff"))
+			{
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x05\x20\x01\x00", 5 });
+				responder->respond("disable controller requested!");
+				consumed = true;
+			}
+			else if (message.equals("con"))
+			{
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x05\x20\x01\x01", 5 });
+				responder->respond("enable controller requested!");
+				consumed = true;
+			}
+			else if (message.equals("hcomf") || message.equals("hon"))
+			{
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x03", 5 });
+				responder->respond("comf heating mode requested!");
+				consumed = true;
+			}
+			else if (message.equals("htimer"))
+			{
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x02", 5 });
+				responder->respond("timer heating mode requested!");
+				consumed = true;
+			}
+			else if (message.equals("heco"))
+			{
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x01", 5 });
+				responder->respond("eco heating mode requested!");
+				consumed = true;
+			}
+			else if (message.equals("hoff"))
+			{
+				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x00", 5 });
+				responder->respond("disable heating mode requested!");
+				consumed = true;
+			}
+
+			/* Blink LED if handled command. */
+			if (consumed)
+				if (auto statusLed_sp = statusLed_wp.lock())
+					statusLed_sp->setBlinking(100, 4);
 		}
 	}
 
