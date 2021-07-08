@@ -26,12 +26,6 @@ namespace comps
 		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE + address * 4);
 		return *reg;
 	}
-	
-	void ICACHE_RAM_ATTR CanService::resetCan()
-	{
-		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
-		*reg = (*reg & ~0x17) | 0x01;
-	}
 
 	void ICACHE_RAM_ATTR CanService::handleCanIntterupt()
 	{
@@ -99,6 +93,12 @@ namespace comps
 			return xQueueReceive(rxQueueHandle, (void*)&outMessage, 0) == pdPASS;
 
 		return false;
+	}
+	
+	void CanService::resetCan()
+	{
+		volatile uint32_t* reg = (volatile uint32_t*)(REG_BASE);
+		*reg = (*reg & ~0x17) | 0x01;
 	}
 
 	void CanService::StopService()
