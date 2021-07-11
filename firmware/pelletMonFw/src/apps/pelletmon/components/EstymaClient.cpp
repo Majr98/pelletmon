@@ -16,6 +16,54 @@ using namespace std::placeholders;
 
 namespace comps
 {
+	struct VideNetMessage : public CanMessage
+	{
+		VideNetMessage()
+		{
+			u64 = 0;
+			frameId = 0x604;
+			dataLen = 8;
+			u8[0] = 0x22;
+		}
+	};
+
+	struct VideNetSetControllerMessage : public VideNetMessage
+	{
+		VideNetSetControllerMessage(bool Enable) : VideNetMessage()
+		{
+			memcpy(&u8[1], "\x05\x20\x01", 3);
+			u8[4] = Enable ? 1 : 0;
+		}
+	};
+
+	struct VideNetSaveSettings : public VideNetMessage
+	{
+		VideNetSaveSettings() : VideNetMessage()
+		{
+			memcpy(&u8[1], "\x10\x10\x011", 3);
+		}
+	};
+
+	namespace HeatMode
+	{
+		enum TYPE
+		{
+			Off,
+			Eco,
+			Timer,
+			Comfort
+		};
+	}
+
+	struct VideNetSetHeatModeMessage : public VideNetMessage
+	{
+		VideNetSetHeatModeMessage(HeatMode::TYPE mode) : VideNetMessage()
+		{
+			memcpy(&u8[1], "\x64\x20\x01", 3);
+			u8[4] = (uint8_t)mode;
+		}
+	};
+
 	bool EstymaClient::init(ksf::ksComposable* owner)
 	{
 		/* Grab weak ptr for Can Service*/
@@ -80,37 +128,37 @@ namespace comps
 		{
 			if (message.equals("coff"))
 			{
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x05\x20\x01\x00", 5 });
+				canService_sp->sendMessage(VideNetSetControllerMessage(false));
 				responder->respond("disable controller requested!");
 				consumed = true;
 			}
 			else if (message.equals("con"))
 			{
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x05\x20\x01\x01", 5 });
+				canService_sp->sendMessage(VideNetSetControllerMessage(true));
 				responder->respond("enable controller requested!");
 				consumed = true;
 			}
 			else if (message.equals("hcomf") || message.equals("hon"))
 			{
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x03", 5 });
+				canService_sp->sendMessage(VideNetSetHeatModeMessage(HeatMode::Comfort));
 				responder->respond("comf heating mode requested!");
 				consumed = true;
 			}
 			else if (message.equals("htimer"))
 			{
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x02", 5 });
+				canService_sp->sendMessage(VideNetSetHeatModeMessage(HeatMode::Timer));
 				responder->respond("timer heating mode requested!");
 				consumed = true;
 			}
 			else if (message.equals("heco"))
 			{
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x01", 5 });
+				canService_sp->sendMessage(VideNetSetHeatModeMessage(HeatMode::Eco));
 				responder->respond("eco heating mode requested!");
 				consumed = true;
 			}
 			else if (message.equals("hoff"))
 			{
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x64\x20\x01\x00", 5 });
+				canService_sp->sendMessage(VideNetSetHeatModeMessage(HeatMode::Off));
 				responder->respond("disable heating mode requested!");
 				consumed = true;
 			}
@@ -118,7 +166,7 @@ namespace comps
 			if (consumed)
 			{
 				/* Execute setting change. */
-				canService_sp->sendMessage({ 0x604, 8, (uint8_t*)"\x22\x10\x10\x01", 4 });
+				canService_sp->sendMessage(VideNetSaveSettings());
 
 				/* Blink LED - handled command. */
 				if (auto statusLed_sp = statusLed_wp.lock())

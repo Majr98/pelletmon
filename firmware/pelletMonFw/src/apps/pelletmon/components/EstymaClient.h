@@ -3,6 +3,7 @@
 namespace comps
 {
 	class CanService;
+
 	class EstymaClient : public ksf::ksComponent
 	{
 		protected:
