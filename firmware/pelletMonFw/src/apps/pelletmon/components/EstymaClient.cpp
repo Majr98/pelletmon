@@ -80,9 +80,7 @@ namespace comps
 	void EstymaClient::sendVideNetRequest(const VideNetChangeParamRequest& videNetRequest)
 	{
 		if (auto canService_sp = canService_wp.lock())
-		{
 			canService_sp->sendMessage(videNetRequest.getMessage());
-		}
 	}
 
 	void EstymaClient::onDebugMessage(ksf::ksMqttDebugResponder* responder, const String& message, bool& consumed)
