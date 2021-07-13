@@ -4,6 +4,9 @@
 #include  <cstring>
 #include "../components/CanService.h"
 
+#define VIDE_NET_REQUEST 0x604
+#define VIDE_NET_RESPONSE 0x584
+
 namespace videnet
 {
 	namespace VideNetRequestType
@@ -11,17 +14,18 @@ namespace videnet
 		enum TYPE
 		{
 			Write = 0x22,
-			Read = 0x60
+			WriteAck = 0x60,
+			Read = 0x60,
+			ReadAck = 0x43
 		};
 	}
 
 	class VideNetRequest
 	{
 		protected:
-			VideNetRequestType::TYPE requestType;
-			virtual const void* getHeader() { return nullptr; }
+			virtual bool checkType(uint8_t value) { return false; }
 			virtual void onFinishedInternal(const comps::CanMessage& msg) = 0;
-
+			virtual const void* getHeader() const { return nullptr; }
 		public:
 			void onResponse(const comps::CanMessage& msg);
 	};
@@ -32,6 +36,7 @@ namespace videnet
 			std::function<void()> onChangeParamFinished = nullptr;
 			comps::CanMessage msg;
 
+			bool checkType(uint8_t value) override;
 			void onFinishedInternal(const comps::CanMessage& msg) override;
 
 		public:
@@ -65,19 +70,19 @@ namespace videnet
 	class VideNetSaveSettings : public VideNetChangeParamRequest
 	{
 		using VideNetChangeParamRequest::VideNetChangeParamRequest;
-		const void* getHeader() override { return "\x10\x10\x011"; }
+		const void* getHeader() const override { return "\x10\x10\x011"; }
 	};
 
 	class VideNetSetController : public VideNetChangeBoolParamRequest
 	{
 		using VideNetChangeBoolParamRequest::VideNetChangeBoolParamRequest;
-		const void* getHeader() override { return "\x05\x20\x01"; }
+		const void* getHeader() const override { return "\x05\x20\x01"; }
 	};
 
 	class VideNetSetHeatMode : public VideNetChangeUint8ParamRequest
 	{
 		using VideNetChangeUint8ParamRequest::VideNetChangeUint8ParamRequest;
-		const void* getHeader() override { return "\x64\x20\x01"; }
+		const void* getHeader() const override { return "\x64\x20\x01"; }
 	};
 
 }

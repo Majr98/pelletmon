@@ -5,13 +5,9 @@ namespace videnet
 	/* ++++++++++++++++++++++++  VideNetRequestBase  +++++++++++++++++++++++ */
 	void VideNetRequest::onResponse(const comps::CanMessage& msg)
 	{
-		if ((msg.frameId == 0x584) && (msg.u8[0] == requestType))
-		{
-			if (memcmp(&msg.u8[1], getHeader(), 3))
-			{
+		if ((msg.frameId == VIDE_NET_RESPONSE) && getHeader() && (checkType(msg.u8[0])))
+			if (memcmp((const void*)&msg.u8[1], getHeader(), 3))
 				onFinishedInternal(msg);
-			}
-		}
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -22,24 +18,32 @@ namespace videnet
 			onChangeParamFinished();
 	}
 
-	VideNetChangeParamRequest::VideNetChangeParamRequest()
+	bool VideNetChangeParamRequest::checkType(uint8_t type)
 	{
-		msg.frameId = 0x584;
-		msg.u64 = 0;
+		return type == VideNetRequestType::WriteAck;
+	}
 
-		requestType = VideNetRequestType::Write;
-		msg.u8[0] = requestType;
-		memcpy(&msg.u8[1], getHeader(), 3);
+	VideNetChangeParamRequest::VideNetChangeParamRequest() 
+		: VideNetRequest()
+	{
+		msg.frameId = VIDE_NET_REQUEST;
+		msg.u64 = 0;
+		msg.dataLen = 8;
+		msg.u8[0] = VideNetRequestType::Write;
 	}
 
 	const comps::CanMessage& VideNetChangeParamRequest::getMessage() const
 	{
+		if (getHeader())
+			memcpy((void*)&msg.u8[1], getHeader(), 3);
+
 		return msg;
 	}
 	/* --------------------------------------------------------------------- */
 
 	/* +++++++++++++++++++ VideNetChangeBoolParamRequest +++++++++++++++++++ */
 	VideNetChangeBoolParamRequest::VideNetChangeBoolParamRequest(bool value, std::function<void()>&& onFinishedFn)
+		: VideNetChangeParamRequest()
 	{
 		msg.u8[4] = value;
 
@@ -50,6 +54,7 @@ namespace videnet
 
 	/* +++++++++++++++++++ VideNetChangeUint8ParamRequest +++++++++++++++++++ */
 	VideNetChangeUint8ParamRequest::VideNetChangeUint8ParamRequest(uint8_t value, std::function<void()>&& onFinishedFn)
+		: VideNetChangeParamRequest()
 	{
 		msg.u8[4] = value;
 
