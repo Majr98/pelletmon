@@ -1,5 +1,11 @@
 #pragma once
 #include <ksIotFrameworkLib.h>
+
+namespace videnet
+{
+	class VideNetChangeParamRequest;
+}
+
 namespace comps
 {
 	class CanService;
@@ -15,6 +21,8 @@ namespace comps
 			void onMqttConnected();
 			void onMqttDisconnected();
 			void onDebugMessage(ksf::ksMqttDebugResponder*, const String& message, bool& consumed);
+
+			void sendVideNetRequest(const videnet::VideNetChangeParamRequest& videNetRequest);
 
 		public:
 			bool init(ksf::ksComposable* owner) override;
