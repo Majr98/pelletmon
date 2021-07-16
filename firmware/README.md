@@ -1,6 +1,6 @@
 # ABOUT
 
-Firmware code for PelletMon device.
+Firmware code for PelletMon device. Written in C++, based on ksIotFrameworkLib and Arduino environment. Tested on ESP32 chip with CAN transceiver.
 
 * Temperature readings based on reverse engineered CAN protocol.
 * Vide-Net support based on awesome work done by Kem Klattrup @kematic (https://github.com/kematic)
