@@ -112,6 +112,8 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\LICENSE" />
+    <None Include="..\README.md" />
     <None Include="pelletMonFw.ino">
       <FileType>CppCode</FileType>
     </None>

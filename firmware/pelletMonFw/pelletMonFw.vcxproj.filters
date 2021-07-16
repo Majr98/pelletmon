@@ -69,5 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="pelletMonFw.ino" />
+    <None Include="..\README.md" />
+    <None Include="..\LICENSE" />
   </ItemGroup>
 </Project>

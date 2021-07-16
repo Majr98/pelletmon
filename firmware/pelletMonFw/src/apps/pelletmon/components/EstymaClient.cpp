@@ -80,12 +80,8 @@ namespace comps
 	void EstymaClient::queueVideNetRequest(std::weak_ptr<VideNetChangeParamRequest> request_wp)
 	{
 		if (auto request_sp = request_wp.lock())
-		{
 			if (auto canService_sp = canService_wp.lock())
-			{
 				canService_sp->sendMessage(request_wp.lock()->getMessage());
-			}
-		}
 	}
 
 	void EstymaClient::onDebugMessage(ksf::ksMqttDebugResponder* responder, const String& message, bool& consumed)
