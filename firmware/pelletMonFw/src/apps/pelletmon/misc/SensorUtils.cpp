@@ -1,6 +1,11 @@
 #include "SensorUtils.h"
 #include <math.h>
 
+/*
+	TODO : Rewrite calculations to base on doc:
+	https://www.estyma.pl/wp-content/uploads/2018/11/Przewodnik-instalatora.pdf
+*/ 
+
 namespace misc
 {
 	double SensorUtils::sensorData[EstymaTempSensorType::ST_MAX][6] =

@@ -20,6 +20,9 @@
     <ClInclude Include="src\apps\pelletmon\misc\SensorUtils.h">
       <Filter>src\apps\pelletmon\misc</Filter>
     </ClInclude>
+    <ClInclude Include="src\apps\pelletmon\videnet\VideNet.h">
+      <Filter>src\apps\pelletmon\videnet</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -40,6 +43,9 @@
     <Filter Include="src\apps\pelletmon\misc">
       <UniqueIdentifier>{2f09a9d7-0cb9-4cf1-9644-5183a018df66}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\apps\pelletmon\videnet">
+      <UniqueIdentifier>{977dcf12-e2ed-443f-a6c9-4f7c0c12bbad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\apps\pelletmon\PelletMon.cpp">
@@ -56,6 +62,9 @@
     </ClCompile>
     <ClCompile Include="src\apps\pelletmon\misc\SensorUtils.cpp">
       <Filter>src\apps\pelletmon\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\pelletmon\videnet\VideNet.cpp">
+      <Filter>src\apps\pelletmon\videnet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

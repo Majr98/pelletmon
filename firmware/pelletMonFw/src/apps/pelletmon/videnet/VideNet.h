@@ -84,5 +84,4 @@ namespace videnet
 		using VideNetChangeUint8ParamRequest::VideNetChangeUint8ParamRequest;
 		const void* getHeader() const override { return "\x64\x20\x01"; }
 	};
-
 }

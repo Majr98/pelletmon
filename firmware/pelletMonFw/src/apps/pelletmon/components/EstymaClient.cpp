@@ -77,47 +77,52 @@ namespace comps
 			canService_sp->stopService();
 	}
 
-	void EstymaClient::sendVideNetRequest(const VideNetChangeParamRequest& videNetRequest)
+	void EstymaClient::queueVideNetRequest(std::weak_ptr<VideNetChangeParamRequest> request_wp)
 	{
-		if (auto canService_sp = canService_wp.lock())
-			canService_sp->sendMessage(videNetRequest.getMessage());
+		if (auto request_sp = request_wp.lock())
+		{
+			if (auto canService_sp = canService_wp.lock())
+			{
+				canService_sp->sendMessage(request_wp.lock()->getMessage());
+			}
+		}
 	}
 
 	void EstymaClient::onDebugMessage(ksf::ksMqttDebugResponder* responder, const String& message, bool& consumed)
 	{
 		if (message.equals("coff"))
 		{
-			sendVideNetRequest(VideNetSetController(false));
+			sendVideNetRequest<VideNetSetController>(false);
 			responder->respond("disable controller requested!");
 			consumed = true;
 		}
 		else if (message.equals("con"))
 		{
-			sendVideNetRequest(VideNetSetController(true));
+			sendVideNetRequest<VideNetSetController>(true);
 			responder->respond("enable controller requested!");
 			consumed = true;
 		}
 		else if (message.equals("hcomf") || message.equals("hon"))
 		{
-			sendVideNetRequest(VideNetSetHeatMode(HeatMode::Comfort));
+			sendVideNetRequest<VideNetSetHeatMode>(HeatMode::Comfort);
 			responder->respond("comf heating mode requested!");
 			consumed = true;
 		}
 		else if (message.equals("htimer"))
 		{
-			sendVideNetRequest(VideNetSetHeatMode(HeatMode::Timer));
+			sendVideNetRequest<VideNetSetHeatMode>(HeatMode::Timer);
 			responder->respond("timer heating mode requested!");
 			consumed = true;
 		}
 		else if (message.equals("heco"))
 		{
-			sendVideNetRequest(VideNetSetHeatMode(HeatMode::Eco));
+			sendVideNetRequest<VideNetSetHeatMode>(HeatMode::Eco);
 			responder->respond("eco heating mode requested!");
 			consumed = true;
 		}
 		else if (message.equals("hoff"))
 		{
-			sendVideNetRequest(VideNetSetHeatMode(HeatMode::Off));
+			sendVideNetRequest<VideNetSetHeatMode>(HeatMode::Off);
 			responder->respond("disable heating mode requested!");
 			consumed = true;
 		}
@@ -125,7 +130,7 @@ namespace comps
 		if (consumed)
 		{
 			/* Execute setting change. */
-			sendVideNetRequest(VideNetSaveSettings());
+			sendVideNetRequest<VideNetSaveSettings>();
 
 			/* Blink LED - handled command. */
 			if (auto statusLed_sp = statusLed_wp.lock())

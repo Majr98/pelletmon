@@ -122,6 +122,7 @@
     <ClInclude Include="src\apps\pelletmon\components\EstymaClient.h" />
     <ClInclude Include="src\apps\pelletmon\misc\SensorUtils.h" />
     <ClInclude Include="src\apps\pelletmon\PelletMon.h" />
+    <ClInclude Include="src\apps\pelletmon\videnet\VideNet.h" />
     <ClInclude Include="src\board.h" />
     <ClInclude Include="__vm\.pelletMonFw.vsarduino.h" />
   </ItemGroup>
@@ -131,6 +132,7 @@
     <ClCompile Include="src\apps\pelletmon\components\EstymaClient.cpp" />
     <ClCompile Include="src\apps\pelletmon\misc\SensorUtils.cpp" />
     <ClCompile Include="src\apps\pelletmon\PelletMon.cpp" />
+    <ClCompile Include="src\apps\pelletmon\videnet\VideNet.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
