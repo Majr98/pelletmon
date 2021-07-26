@@ -3,12 +3,13 @@
 
 namespace videnet
 {
-	class VideNetChangeParamRequest;
+	class VideNetRequest;
 }
 
 namespace comps
 {
 	class CanService;
+	class CanMessage;
 
 	class EstymaClient : public ksf::ksComponent
 	{
@@ -16,13 +17,16 @@ namespace comps
 			std::weak_ptr<CanService> canService_wp;
 			std::weak_ptr<ksf::ksMqttConnector> mqttConn_wp;
 			std::weak_ptr<ksf::ksLed> statusLed_wp;
-			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, debugMessageEventHandle_sp;
+			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, msgEventHandle_sp, debugMessageEventHandle_sp;
 			
-			void onMqttConnected();
-			void onMqttDisconnected();
-			void onDebugMessage(ksf::ksMqttDebugResponder*, const String& message, bool& consumed);
+			std::vector<std::shared_ptr<videnet::VideNetRequest>> videNetRequests;
+			unsigned long lastVideNetPing = 0;
 
-			void queueVideNetRequest(std::weak_ptr<videnet::VideNetChangeParamRequest> request_wp);
+			void onMqttConnected();
+			void onMqttMessage(const String& topic, const String& message);
+			void onMqttDisconnected();
+
+			void queueVideNetRequest(std::shared_ptr<videnet::VideNetRequest> request_sp);
 
 			template <class Type, class... Params>
 			std::weak_ptr<Type> sendVideNetRequest(Params...rest)
@@ -39,6 +43,12 @@ namespace comps
 				queueVideNetRequest(ptr);
 				return std::weak_ptr<Type>(ptr);
 			}
+
+			void handleVideNetResponse(const CanMessage& incommingMessage);
+			void cleanupVideNetRequests(bool forceClearAll = false);
+
+			void handleIncommingQueue();
+			void tickVideNet();
 
 		public:
 			bool init(ksf::ksComposable* owner) override;

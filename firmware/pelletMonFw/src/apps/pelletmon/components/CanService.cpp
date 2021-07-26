@@ -12,8 +12,11 @@ namespace comps
 {
 	bool CanService::init(ksf::ksComposable* owner)
 	{
+		resetCan();
+
 		/* Setup interface pins. */
 		CAN.setPins(CAN_RX_PIN, CAN_TX_PIN);
+
 		return true;
 	}
 
@@ -100,6 +103,8 @@ namespace comps
 			CAN.beginPacket(inMessage.frameId, inMessage.dataLen);
 			CAN.write(inMessage.u8, inMessage.dataLen);
 			CAN.endPacket();
+
+			return true;
 		}
 
 		return false;
