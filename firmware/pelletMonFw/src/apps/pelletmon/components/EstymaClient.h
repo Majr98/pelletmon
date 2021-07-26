@@ -27,6 +27,7 @@ namespace comps
 			void onMqttDisconnected();
 
 			void queueVideNetRequest(std::shared_ptr<videnet::VideNetRequest> request_sp);
+			void eraseVideNeRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn);
 
 			template <class Type, class... Params>
 			std::weak_ptr<Type> sendVideNetRequest(Params...rest)
@@ -43,9 +44,6 @@ namespace comps
 				queueVideNetRequest(ptr);
 				return std::weak_ptr<Type>(ptr);
 			}
-
-			void handleVideNetResponse(const CanMessage& incommingMessage);
-			void cleanupVideNetRequests(bool forceClearAll = false);
 
 			void handleIncommingQueue();
 			void tickVideNet();

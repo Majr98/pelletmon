@@ -4,6 +4,7 @@
 #include  <cstring>
 #include "../components/CanService.h"
 
+#define VIDE_NET_PING_DELAY 15000
 #define VIDE_NET_PING 0x75C
 #define VIDE_NET_REQUEST 0x604
 #define VIDE_NET_RESPONSE 0x584

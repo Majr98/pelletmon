@@ -68,7 +68,7 @@ namespace comps
 	void EstymaClient::onMqttDisconnected()
 	{
 		/* Clear pending requests. */
-		cleanupVideNetRequests(true);
+		eraseVideNeRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool { return true; });
 
 		/* Start blinking status led on MQTT disconnect. */
 		if (auto statusLed_sp = statusLed_wp.lock())
@@ -111,19 +111,10 @@ namespace comps
 				videNetRequests.push_back(request_sp);
 	}
 
-	void EstymaClient::handleVideNetResponse(const CanMessage& incommingMessage)
+	void EstymaClient::eraseVideNeRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn)
 	{
 		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
-			if (it->get()->onResponse(incommingMessage))
-				it = videNetRequests.erase(it);
-			else
-				++it;
-	}
-
-	void EstymaClient::cleanupVideNetRequests(bool forceClearAll)
-	{
-		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
-			if (forceClearAll || (millis() - it->get()->getSendingTime() > 15000))
+			if (fn(*it))
 				it = videNetRequests.erase(it);
 			else
 				++it;
@@ -139,17 +130,14 @@ namespace comps
 			{
 				if (incommingMessage.frameId == VIDE_NET_RESPONSE)
 				{
-					handleVideNetResponse(incommingMessage);
+					eraseVideNeRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+						return req->onResponse(incommingMessage);
+					});
 				}
 				else if (auto mqttConnection = mqttConn_wp.lock())
 				{
 					switch (incommingMessage.frameId)
 					{
-						/* Handle Vide Net response. */
-						case VIDE_NET_RESPONSE:
-							handleVideNetResponse(incommingMessage);
-						break;
-
 						/* Handle rotations packet. */
 						case ESTYMA_CAN_ROTATIONS:
 							mqttConnection->publish("rotations", String(incommingMessage.u16[0]));
@@ -173,44 +161,55 @@ namespace comps
 	{
 		if (auto canService_sp = canService_wp.lock())
 		{
-			if (millis() - lastVideNetPing > 15000)
+			if (millis() - lastVideNetPing > VIDE_NET_PING_DELAY)
 			{
+				/* Send ping packet to kettle. It brings up our module in CAN network node list. */
 				canService_sp->sendMessage({ VIDE_NET_PING, 1, 0 });
 
-				if (auto mqttConnection = mqttConn_wp.lock())
-				{
-					sendVideNetRequest<VideNetGetKettleTemp>([=](uint16_t kettleTemp) {
+				/* Request current kettle temperature. */
+				sendVideNetRequest<VideNetGetKettleTemp>([=](uint16_t kettleTemp) {
+					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("boiler_temp", String(kettleTemp / 10.0f, 1));
-					});
+				});
 
-					sendVideNetRequest<VideNetGetHotWaterTemp>([=](uint16_t hotWaterTemp) {
+				/* Request current hot water temperature. */
+				sendVideNetRequest<VideNetGetHotWaterTemp>([=](uint16_t hotWaterTemp) {
+					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("cwu_temp", String(hotWaterTemp / 10.0f, 1));
-					});
+				});
 
-					sendVideNetRequest<VideNetGetHeatMode>([=](uint8_t heatMode) {
+				/* Request current heat mode. */
+				sendVideNetRequest<VideNetGetHeatMode>([=](uint8_t heatMode) {
+					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("heatmode_current", String(heatMode + 1));
-					});
+				});
 
-					sendVideNetRequest<VideNetGetHotWaterMode>([=](uint8_t heatMode) {
+				/* Request current hot water mode. */
+				sendVideNetRequest<VideNetGetHotWaterMode>([=](uint8_t heatMode) {
+					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("hotwatermode_current", String(heatMode + 1));
-					});
-				}
+				});
 
 				/* Blink LED on each recevied packet. */
 				if (auto statusLed_sp = statusLed_wp.lock())
 					statusLed_sp->setBlinking(75, 2);
 
+				/* Set current time as last ping time. */
 				lastVideNetPing = millis();
 			}
 		}
 
-		cleanupVideNetRequests();
+		/* Call cleanup method to kick out timed out requests. */
+		eraseVideNeRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+			return millis() - req->getSendingTime() > 15000;
+		});
 	}
 
 	bool EstymaClient::loop()
 	{
 		handleIncommingQueue();
 		tickVideNet();
+
 		return true;
 	}
 }
