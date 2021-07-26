@@ -68,7 +68,7 @@ namespace comps
 	void EstymaClient::onMqttDisconnected()
 	{
 		/* Clear pending requests. */
-		eraseVideNeRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool { return true; });
+		videNetRequests.clear();
 
 		/* Start blinking status led on MQTT disconnect. */
 		if (auto statusLed_sp = statusLed_wp.lock())
@@ -200,7 +200,7 @@ namespace comps
 		}
 
 		/* Call cleanup method to kick out timed out requests. */
-		eraseVideNeRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+		eraseVideNeRequestIf([](std::shared_ptr<videnet::VideNetRequest> req)->bool {
 			return millis() - req->getSendingTime() > 15000;
 		});
 	}
