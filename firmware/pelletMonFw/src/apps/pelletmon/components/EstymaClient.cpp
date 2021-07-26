@@ -209,6 +209,7 @@ namespace comps
 
 	bool EstymaClient::loop()
 	{
+		handleIncommingQueue();
 		tickVideNet();
 		return true;
 	}
