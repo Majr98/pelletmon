@@ -87,22 +87,32 @@ namespace videnet
 
 	class VideNetReadUint8ParamRequest : public VideNetReadParamRequest
 	{
-	protected:
-		std::function<void(uint8_t)> onReadUint8Finished = nullptr;
-		virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+		protected:
+			std::function<void(uint8_t)> onReadUint8Finished = nullptr;
+			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
 
-	public:
-		VideNetReadUint8ParamRequest(std::function<void(uint8_t)>&& onReadUint8FinishedFn);
+		public:
+			VideNetReadUint8ParamRequest(std::function<void(uint8_t)>&& onReadUint8FinishedFn);
 	};
 
 	class VideNetReadUint16ParamRequest : public VideNetReadParamRequest
 	{
-	protected:
-		std::function<void(uint16_t)> onReadUInt16Finished = nullptr;
-		virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+		protected:
+			std::function<void(uint16_t)> onReadUInt16Finished = nullptr;
+			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
 
-	public:
-		VideNetReadUint16ParamRequest(std::function<void(uint16_t)>&& onReadUInt16FinishedFn);
+		public:
+			VideNetReadUint16ParamRequest(std::function<void(uint16_t)>&& onReadUInt16FinishedFn);
+	};
+
+	class VideNetReadUint32ParamRequest : public VideNetReadParamRequest
+	{
+		protected:
+			std::function<void(uint32_t)> onReadUInt32Finished = nullptr;
+			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+
+		public:
+			VideNetReadUint32ParamRequest(std::function<void(uint32_t)>&& onReadUInt32FinishedFn);
 	};
 
 	namespace HeatMode
@@ -170,4 +180,9 @@ namespace videnet
 		const void* getHeader() const override { return "\x14\x20\x01"; }
 	};
 
+	class VideNetGetBurnerUsageTotal : public VideNetReadUint32ParamRequest
+	{
+		using VideNetReadUint32ParamRequest::VideNetReadUint32ParamRequest;
+		const void* getHeader() const override { return "\x24\x21\x01"; }
+	};
 }

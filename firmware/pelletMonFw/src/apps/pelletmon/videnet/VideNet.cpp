@@ -129,4 +129,18 @@ namespace videnet
 			onReadUInt16Finished(msg.u16[2]);
 	}
 	/* --------------------------------------------------------------------- */
+
+	/* +++++++++++++++++++ VideNetReadUint32ParamRequest +++++++++++++++++++ */
+	VideNetReadUint32ParamRequest::VideNetReadUint32ParamRequest(std::function<void(uint32_t)>&& onReadUInt32FinishedFn)
+	{
+		if (onReadUInt32FinishedFn)
+			onReadUInt32Finished = std::move(onReadUInt32FinishedFn);
+
+	}
+	void VideNetReadUint32ParamRequest::onFinishedInternal(const comps::CanMessage& msg)
+	{
+		if (onReadUInt32Finished)
+			onReadUInt32Finished(msg.u32[1]);
+	}
+	/* --------------------------------------------------------------------- */
 }

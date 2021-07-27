@@ -111,7 +111,7 @@ namespace comps
 				videNetRequests.push_back(request_sp);
 	}
 
-	void EstymaClient::eraseVideNeRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn)
+	void EstymaClient::eraseVideNetRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn)
 	{
 		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
 			if (fn(*it))
@@ -120,7 +120,7 @@ namespace comps
 				++it;
 	}
 
-	void EstymaClient::handleIncommingQueue()
+	void EstymaClient::handleMessageQueue()
 	{
 		if (auto canService_sp = canService_wp.lock())
 		{
@@ -130,7 +130,8 @@ namespace comps
 			{
 				if (incommingMessage.frameId == VIDE_NET_RESPONSE)
 				{
-					eraseVideNeRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+					/* Handle vide net packet. Remove request if response handled. */
+					eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
 						return req->onResponse(incommingMessage);
 					});
 				}
@@ -157,37 +158,43 @@ namespace comps
 		}
 	}
 
-	void EstymaClient::tickVideNet()
+	void EstymaClient::handleVideNetPeriodicOps()
 	{
 		if (auto canService_sp = canService_wp.lock())
 		{
 			if (millis() - lastVideNetPing > VIDE_NET_PING_DELAY)
 			{
 				/* Send ping packet to kettle. It brings up our module in CAN network node list. */
-				canService_sp->sendMessage({ VIDE_NET_PING, 1, 0 });
+				canService_sp->sendMessage({VIDE_NET_PING, 1, 0});
 
 				/* Request current kettle temperature. */
-				sendVideNetRequest<VideNetGetKettleTemp>([=](uint16_t kettleTemp) {
+				sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
 					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("boiler_temp", String(kettleTemp / 10.0f, 1));
 				});
 
 				/* Request current hot water temperature. */
-				sendVideNetRequest<VideNetGetHotWaterTemp>([=](uint16_t hotWaterTemp) {
+				sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
 					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("cwu_temp", String(hotWaterTemp / 10.0f, 1));
 				});
 
 				/* Request current heat mode. */
-				sendVideNetRequest<VideNetGetHeatMode>([=](uint8_t heatMode) {
+				sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
 					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("heatmode_current", String(heatMode + 1));
 				});
 
 				/* Request current hot water mode. */
-				sendVideNetRequest<VideNetGetHotWaterMode>([=](uint8_t heatMode) {
+				sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
 					if (auto mqttConnection = mqttConn_wp.lock())
 						mqttConnection->publish("hotwatermode_current", String(heatMode + 1));
+				});
+
+				/* Request total burner usage (kg * 10). */
+				sendVideNetRequest<VideNetGetBurnerUsageTotal>([&](uint32_t totalUsage) {
+					if (auto mqttConnection = mqttConn_wp.lock())
+						mqttConnection->publish("burnerusage_total", String(totalUsage / 10.0f, 1));
 				});
 
 				/* Blink LED on each recevied packet. */
@@ -200,15 +207,18 @@ namespace comps
 		}
 
 		/* Call cleanup method to kick out timed out requests. */
-		eraseVideNeRequestIf([](std::shared_ptr<videnet::VideNetRequest> req)->bool {
-			return millis() - req->getSendingTime() > 15000;
+		eraseVideNetRequestIf([](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+			return millis() - req->getSendingTime() > KSF_ONE_SECOND_MS;
 		});
 	}
 
 	bool EstymaClient::loop()
 	{
-		handleIncommingQueue();
-		tickVideNet();
+		/* Handles pending messages in queue. */
+		handleMessageQueue();
+
+		/* Handles periodic VideNet operations (clean up requests, send info to MQTT etc...). */
+		handleVideNetPeriodicOps();
 
 		return true;
 	}
