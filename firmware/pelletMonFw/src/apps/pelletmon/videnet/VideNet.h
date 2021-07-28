@@ -185,4 +185,10 @@ namespace videnet
 		using VideNetReadUint32ParamRequest::VideNetReadUint32ParamRequest;
 		const void* getHeader() const override { return "\x24\x21\x01"; }
 	};
+
+	class VideNetGetBurnerPower : public VideNetReadUint8ParamRequest
+	{
+		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;
+		const void* getHeader() const override { return "\x05\x40\x01"; }
+	};
 }

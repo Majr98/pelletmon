@@ -47,7 +47,7 @@ namespace comps
 		public:
 			bool init(ksf::ksComposable* owner) override;
 
-			bool startService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int subscribeInfoLen);
+			bool startService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int subscribeInfoLen, unsigned int queueSize = 10);
 			bool sendMessage(const CanMessage& inMessage) const;
 			bool receiveMessage(CanMessage& outMessage);
 			void stopService();

@@ -12,6 +12,7 @@ namespace comps
 {
 	bool CanService::init(ksf::ksComposable* owner)
 	{
+		/* Reset CAN IC. */
 		resetCan();
 
 		/* Setup interface pins. */
@@ -65,7 +66,7 @@ namespace comps
 		}
 	}
 
-	bool CanService::startService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int sizeofSubscribeInfo)
+	bool CanService::startService(unsigned int canServiceSpeed, CanServiceSubscribeInfo* subscribeInfo, unsigned int sizeofSubscribeInfo, unsigned int queueSize)
 	{
 		if (!canInterruptHandle)
 		{
@@ -83,7 +84,7 @@ namespace comps
 				}
 
 				/* Creqte RX queue. */
-				rxQueueHandle = xQueueCreate(10, sizeof(CanMessage));
+				rxQueueHandle = xQueueCreate(queueSize, sizeof(CanMessage));
 
 				/* Setup interrupt. */
 				esp_intr_alloc(ETS_CAN_INTR_SOURCE, ESP_INTR_FLAG_IRAM, CanService::staticInterruptWrapper, this, &canInterruptHandle);

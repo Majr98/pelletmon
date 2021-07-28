@@ -1,17 +1,9 @@
 #include "EstymaClient.h"
 #include "CanService.h"
-#include "../misc/SensorUtils.h"
 #include "../videnet/VideNet.h"
 
-using namespace misc;
 using namespace videnet;
 using namespace std::placeholders;
-
-/* CAN packet ids */
-#define ESTYMA_CAN_ROTATIONS 0x2D7
-//#define ESTYMA_CAN_TEMEPRATURES 0x2D6
-//#define ESTYMA_CAN_CWUTEMPS 0x3D6
-#define ESTYMA_CAN_EXHAUST_TEMPS 0x4D6
 
 /* CAN speed */
 #define ESTYMA_CAN_SPEED 125E3
@@ -47,9 +39,7 @@ namespace comps
 		{
 			CanServiceSubscribeInfo subMsgs[] =
 			{
-				{ESTYMA_CAN_ROTATIONS,		10000},
-				{ESTYMA_CAN_EXHAUST_TEMPS,	10000},
-				{VIDE_NET_RESPONSE,				0}
+				{VIDE_NET_RESPONSE,	0}
 			};
 
 			/* Start CAN service. */
@@ -114,10 +104,15 @@ namespace comps
 	void EstymaClient::eraseVideNetRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn)
 	{
 		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
-			if (fn(*it))
-				it = videNetRequests.erase(it);
-			else
-				++it;
+		{
+			it = fn(*it) ? videNetRequests.erase(it) : it + 1;
+		}
+	}
+
+	void EstymaClient::tryPublishToMqtt(const char* topic, const String& value) const
+	{
+		if (auto mqttConnection = mqttConn_wp.lock())
+			mqttConnection->publish(topic, value);
 	}
 
 	void EstymaClient::handleMessageQueue()
@@ -125,35 +120,12 @@ namespace comps
 		if (auto canService_sp = canService_wp.lock())
 		{
 			CanMessage incommingMessage;
-			
-			if (canService_sp->receiveMessage(incommingMessage))
+			if (canService_sp->receiveMessage(incommingMessage) && incommingMessage.frameId == VIDE_NET_RESPONSE)
 			{
-				if (incommingMessage.frameId == VIDE_NET_RESPONSE)
-				{
-					/* Handle vide net packet. Remove request if response handled. */
-					eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
-						return req->onResponse(incommingMessage);
-					});
-				}
-				else if (auto mqttConnection = mqttConn_wp.lock())
-				{
-					switch (incommingMessage.frameId)
-					{
-						/* Handle rotations packet. */
-						case ESTYMA_CAN_ROTATIONS:
-							mqttConnection->publish("rotations", String(incommingMessage.u16[0]));
-						break;
-
-						/* Handle exhaust packet. */
-						case ESTYMA_CAN_EXHAUST_TEMPS:
-							mqttConnection->publish("exhaust_temp", String(SensorUtils::convertTemp(incommingMessage.u16[3], EstymaTempSensorType::CT3A), 0));
-						break;
-					}
-
-					/* Blink LED on each recevied packet. */
-					if (auto statusLed_sp = statusLed_wp.lock())
-						statusLed_sp->setBlinking(50, 3);
-				}
+				/* Handle vide net packet. Remove request if response handled. */
+				eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+					return req->onResponse(incommingMessage);
+				});
 			}
 		}
 	}
@@ -169,32 +141,32 @@ namespace comps
 
 				/* Request current kettle temperature. */
 				sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
-					if (auto mqttConnection = mqttConn_wp.lock())
-						mqttConnection->publish("boiler_temp", String(kettleTemp / 10.0f, 1));
+					tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
 				});
 
 				/* Request current hot water temperature. */
 				sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
-					if (auto mqttConnection = mqttConn_wp.lock())
-						mqttConnection->publish("cwu_temp", String(hotWaterTemp / 10.0f, 1));
+					tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
 				});
 
 				/* Request current heat mode. */
 				sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
-					if (auto mqttConnection = mqttConn_wp.lock())
-						mqttConnection->publish("heatmode_current", String(heatMode + 1));
+					tryPublishToMqtt("heatmode_current", String(heatMode + 1));
 				});
 
 				/* Request current hot water mode. */
 				sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
-					if (auto mqttConnection = mqttConn_wp.lock())
-						mqttConnection->publish("hotwatermode_current", String(heatMode + 1));
+					tryPublishToMqtt("hotwatermode_current", String(heatMode + 1));
 				});
 
 				/* Request total burner usage (kg * 10). */
 				sendVideNetRequest<VideNetGetBurnerUsageTotal>([&](uint32_t totalUsage) {
-					if (auto mqttConnection = mqttConn_wp.lock())
-						mqttConnection->publish("burnerusage_total", String(totalUsage / 10.0f, 1));
+					tryPublishToMqtt("burnerusage_total", String(totalUsage * 0.1f, 1));
+				});
+
+				/* Request current burner power. */
+				sendVideNetRequest<VideNetGetBurnerPower>([&](uint8_t powerPercentage) {
+					tryPublishToMqtt("burnerpower_current", String(powerPercentage));
 				});
 
 				/* Blink LED on each recevied packet. */

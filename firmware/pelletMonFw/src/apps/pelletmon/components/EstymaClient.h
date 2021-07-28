@@ -45,6 +45,8 @@ namespace comps
 				return std::weak_ptr<Type>(ptr);
 			}
 
+			void tryPublishToMqtt(const char* topic, const String& value) const;
+
 			void handleMessageQueue();
 			void handleVideNetPeriodicOps();
 
