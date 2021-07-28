@@ -122,7 +122,6 @@
     <ClInclude Include="src\apps\config\PelletMonConfig.h" />
     <ClInclude Include="src\apps\pelletmon\components\CanService.h" />
     <ClInclude Include="src\apps\pelletmon\components\EstymaClient.h" />
-    <ClInclude Include="src\apps\pelletmon\misc\SensorUtils.h" />
     <ClInclude Include="src\apps\pelletmon\PelletMon.h" />
     <ClInclude Include="src\apps\pelletmon\videnet\VideNet.h" />
     <ClInclude Include="src\board.h" />
@@ -132,7 +131,6 @@
     <ClCompile Include="src\apps\config\PelletMonConfig.cpp" />
     <ClCompile Include="src\apps\pelletmon\components\CanService.cpp" />
     <ClCompile Include="src\apps\pelletmon\components\EstymaClient.cpp" />
-    <ClCompile Include="src\apps\pelletmon\misc\SensorUtils.cpp" />
     <ClCompile Include="src\apps\pelletmon\PelletMon.cpp" />
     <ClCompile Include="src\apps\pelletmon\videnet\VideNet.cpp" />
   </ItemGroup>
