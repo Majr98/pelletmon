@@ -101,9 +101,11 @@ namespace comps
 		/* If we have canInterruptHandle, then we know we can send message. */
 		if (canInterruptHandle)
 		{
+			noInterrupts();
 			CAN.beginPacket(inMessage.frameId, inMessage.dataLen);
 			CAN.write(inMessage.u8, inMessage.dataLen);
 			CAN.endPacket();
+			interrupts();
 
 			return true;
 		}
