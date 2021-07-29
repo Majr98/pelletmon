@@ -111,8 +111,16 @@ namespace comps
 
 	void EstymaClient::tryPublishToMqtt(const char* topic, const String& value) const
 	{
-		if (auto mqttConnection = mqttConn_wp.lock())
+		auto mqttConnection = mqttConn_wp.lock();
+
+		if (mqttConnection && mqttConnection->isConnected())
+		{
+			/* Blink LED on each recevied packet. */
+			if (auto statusLed_sp = statusLed_wp.lock())
+				statusLed_sp->setBlinking(75, 2);
+
 			mqttConnection->publish(topic, value);
+		}
 	}
 
 	void EstymaClient::handleMessageQueue()
@@ -120,12 +128,15 @@ namespace comps
 		if (auto canService_sp = canService_wp.lock())
 		{
 			CanMessage incommingMessage;
-			if (canService_sp->receiveMessage(incommingMessage) && incommingMessage.frameId == VIDE_NET_RESPONSE)
+			while (canService_sp->receiveMessage(incommingMessage))
 			{
-				/* Handle vide net packet. Remove request if response handled. */
-				eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
-					return req->onResponse(incommingMessage);
-				});
+				if (incommingMessage.frameId == VIDE_NET_RESPONSE)
+				{
+					/* Handle vide net packet. Remove request if response handled. */
+					eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+						return req->onResponse(incommingMessage);
+					});
+				}
 			}
 		}
 	}
@@ -168,10 +179,6 @@ namespace comps
 				sendVideNetRequest<VideNetGetBurnerPower>([&](uint8_t powerPercentage) {
 					tryPublishToMqtt("burnerpower_current", String(powerPercentage));
 				});
-
-				/* Blink LED on each recevied packet. */
-				if (auto statusLed_sp = statusLed_wp.lock())
-					statusLed_sp->setBlinking(75, 2);
 
 				/* Set current time as last ping time. */
 				lastVideNetPing = millis();

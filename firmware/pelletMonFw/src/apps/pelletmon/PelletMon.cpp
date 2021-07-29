@@ -40,10 +40,6 @@ bool PelletMon::init()
 	if (auto statusLed_sp = statusLed_wp.lock())
 		statusLed_sp->setBlinking(500);
 
-	/* Disable watchdog, as PubSubClient causes blocks sometimes. */
-	disableCore0WDT();
-	disableCore1WDT();
-
 	/* Application finished initialization, return true as it succedeed. */
 	return true;
 }

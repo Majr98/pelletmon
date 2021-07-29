@@ -49,7 +49,7 @@ namespace comps
 			for (auto& subMsg : subscribedMessages)
 			{
 				/* If packet matches subscribed one, then check if it should be queued (based on period). */
-				if ((CAN.packetId() == subMsg.frameId) && ((subMsg.period == 0) || (millis() - subMsg.lastTick > subMsg.period)))
+				if ((CAN.packetId() == subMsg.frameId) && ((subMsg.period == 0) || (ctime - subMsg.lastTick > subMsg.period)))
 				{
 					/* Update last tick to current time. */
 					subMsg.lastTick = ctime;
@@ -137,12 +137,12 @@ namespace comps
 			vQueueDelete(rxQueueHandle);
 			rxQueueHandle = nullptr;
 
-			/* Reset CAN device and close interface. */
-			resetCan();
-			CAN.end();
-
 			/* Clear message list. */
 			subscribedMessages.clear();
+
+			/* Reset CAN device and close interface. */
+			CAN.end();
+			resetCan();
 		}
 	}
 
