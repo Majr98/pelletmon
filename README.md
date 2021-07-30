@@ -19,9 +19,9 @@ The project will have its own PCB. Communication with the outside world will be 
 
 
 ## SOFTWARE
-- Hardcoded CAN support.
+- <s>Hardcoded CAN support.</s> (now using VideNet, which is universal)
 - <s>Sometimes at boot sends "zero" values to MQTT.</s>
-- No support for fuel level sensor.
+- No support for fuel level sensor. (it was previously planned, but VideNet gives info about fuel usage)
 
 # PICS
 ![Board design top](renders/PelletMon.jpg "Board design top")
@@ -31,4 +31,4 @@ The project will have its own PCB. Communication with the outside world will be 
 
 # Special thanks
 - M-Works [ https://m-works.net/ ]
-- Robert Ł.
+- Robert Labuz.
