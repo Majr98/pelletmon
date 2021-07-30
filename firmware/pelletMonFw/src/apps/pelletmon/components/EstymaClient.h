@@ -17,7 +17,7 @@ namespace comps
 			std::weak_ptr<CanService> canService_wp;
 			std::weak_ptr<ksf::ksMqttConnector> mqttConn_wp;
 			std::weak_ptr<ksf::ksLed> statusLed_wp;
-			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, msgEventHandle_sp, debugMessageEventHandle_sp;
+			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, msgEventHandle_sp;
 			
 			std::vector<std::shared_ptr<videnet::VideNetRequest>> videNetRequests;
 			unsigned long lastVideNetPing = 0;
