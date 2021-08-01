@@ -9,25 +9,20 @@ Requires ArduinoCAN + ksIotFrameworkLib dependencies.
 * No support for Pellet (fuel) level sensor that was planned at beggining (no time for development, Vide-Net protocol might handle that).
 
 ## Features
-* CanBus communication support.
 * Based on ksIotFrameworkLib, simple, clear and responsive non-blocking code.
-* Settings support (via WiFi portal - WiFiManager library).
-* Reading of temperatures (kettle, water, exhaust) + blower RPM.
-* Remote kettle control (heating modes, disable/enable controller).
-* Automatic publishing fresh readings to MQTT broker.
-* Basic VideNet support, might be extended to full kettle remote control.
+* WiFi settings support (via cap portal with WiFiManager library).
+* Reading kettle state (kettle temperature, hot water temperature, power etc.)
+* Remote kettle control (heating modes, disable/enable controller etc.).
+* Synchronization with MQTT broker.
 
 ## Components
 
 PelletMon app is divided into components, that handle specific tasks.
-
-* CanService - handles low-level CAN communication by using Arduino-CAN library. Handles message-filtering, receives messages into a queue. 
 * EstymaClient - handles Estyma CAN protocol (reads message from queue in loop but is also able to send messages), handles VideNet communication also as well.
 
 ## Other classes
-
 * VideNet - contains message classes and general protocol implementation for VideNet. Used by EstymaClient to handle VideNet specific messages.
-* SensorUtils - contains sensor specific calculation algorithms, to be able to convert raw ADC readings done by Estyma-driver into human-readable temperature values.
+* Board - some low-level code handling CAN bus is placed inside board.cpp.
 
 ## References and special thanks
 * [Installation manual for Estyma based kettle (PL)](https://www.estyma.pl/wp-content/uploads/2018/11/Przewodnik-instalatora.pdf)
@@ -35,6 +30,6 @@ PelletMon app is divided into components, that handle specific tasks.
 * [CAN-Network documentation (by Kem Klattrup)](https://github.com/kematic/pelle/wiki/CAN-network)
 * [Curve Expert creators for awesome tool](https://www.curveexpert.net/)
 * [CAN Monitor contributors for awesome tool](https://github.com/tixiv/CAN-Monitor-qt)
-* Robert £abuz for his awesome support.
+* Robert Labuz for his awesome support.
 * Damian Nowakowski for being my rubber duck.
 * Patryk Pietruszka for dissucssing a lot of problems.
