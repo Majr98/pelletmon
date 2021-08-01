@@ -8,13 +8,9 @@ namespace videnet
 
 namespace comps
 {
-	class CanService;
-	class CanMessage;
-
 	class EstymaClient : public ksf::ksComponent
 	{
 		protected:
-			std::weak_ptr<CanService> canService_wp;
 			std::weak_ptr<ksf::ksMqttConnector> mqttConn_wp;
 			std::weak_ptr<ksf::ksLed> statusLed_wp;
 			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, msgEventHandle_sp;

@@ -14,9 +14,6 @@
     <ClInclude Include="src\apps\config\PelletMonConfig.h">
       <Filter>src\apps\config</Filter>
     </ClInclude>
-    <ClInclude Include="src\apps\pelletmon\components\CanService.h">
-      <Filter>src\apps\pelletmon\comps</Filter>
-    </ClInclude>
     <ClInclude Include="src\apps\pelletmon\videnet\VideNet.h">
       <Filter>src\apps\pelletmon\videnet</Filter>
     </ClInclude>
@@ -50,9 +47,6 @@
     </ClCompile>
     <ClCompile Include="src\apps\config\PelletMonConfig.cpp">
       <Filter>src\apps\config</Filter>
-    </ClCompile>
-    <ClCompile Include="src\apps\pelletmon\components\CanService.cpp">
-      <Filter>src\apps\pelletmon\comps</Filter>
     </ClCompile>
     <ClCompile Include="src\apps\pelletmon\videnet\VideNet.cpp">
       <Filter>src\apps\pelletmon\videnet</Filter>

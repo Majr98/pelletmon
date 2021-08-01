@@ -1,5 +1,5 @@
 #include "CanService.h"
-#include <CAN.h>
+#include <ESP32CAN.h>
 #include "../../../board.h"
 
 /*
@@ -96,16 +96,14 @@ namespace comps
 		return false;
 	}
 
-	bool CanService::sendMessage(const CanMessage& inMessage) const
+	bool CanService::sendMessage(const CAN_frame_t& inMessage) const
 	{
 		/* If we have canInterruptHandle, then we know we can send message. */
 		if (canInterruptHandle)
 		{
-			noInterrupts();
 			CAN.beginPacket(inMessage.frameId, inMessage.dataLen);
 			CAN.write(inMessage.u8, inMessage.dataLen);
 			CAN.endPacket();
-			interrupts();
 
 			return true;
 		}

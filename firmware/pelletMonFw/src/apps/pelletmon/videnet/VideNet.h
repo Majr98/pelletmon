@@ -1,8 +1,7 @@
 #pragma once
 #include <functional>
 #include <inttypes.h>
-#include  <cstring>
-#include "../components/CanService.h"
+#include <CAN.h>
 
 #define VIDE_NET_PING_DELAY 15000
 #define VIDE_NET_PING 0x75C
@@ -25,20 +24,28 @@ namespace videnet
 	class VideNetRequest
 	{
 		protected:
-			comps::CanMessage rmsg;
+			CAN_frame_t rmsg;
 			virtual bool checkType(uint8_t value) { return false; }
-			virtual void onFinishedInternal(const comps::CanMessage& msg) = 0;
+			virtual void onFinishedInternal(const CAN_frame_t& msg) {};
 			virtual const void* getHeader() const { return nullptr; }
 
 			unsigned int sendingTime = 0;
 
 		public:
-			bool onResponse(const comps::CanMessage& msg);
+			bool onResponse(const CAN_frame_t& msg);
 			unsigned int getSendingTime() const { return sendingTime; }
-			const comps::CanMessage& prepareMessage();
+			const CAN_frame_t& prepareMessage();
 			virtual bool needWaitForReply() const { return true; }
 
 			VideNetRequest();
+	};
+
+	class VideNetPing : public VideNetRequest
+	{
+		public:
+			virtual bool needWaitForReply() const { return false; }
+
+			VideNetPing();
 	};
 
 	class VideNetChangeParamRequest : public VideNetRequest
@@ -47,7 +54,7 @@ namespace videnet
 			std::function<void()> onChangeParamFinished = nullptr;
 
 			bool checkType(uint8_t value) override;
-			void onFinishedInternal(const comps::CanMessage& msg) override;
+			void onFinishedInternal(const CAN_frame_t& msg) override;
 
 		public:
 			virtual bool needWaitForReply() const { return onChangeParamFinished != nullptr; }
@@ -79,7 +86,7 @@ namespace videnet
 	{
 		protected:
 			std::function<void(bool)> onReadBoolFinished = nullptr;
-			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+			virtual void onFinishedInternal(const CAN_frame_t& msg) override;
 
 		public:
 			VideNetReadBoolParamRequest(std::function<void(bool)>&& onReadBoolFinishedFn);
@@ -89,7 +96,7 @@ namespace videnet
 	{
 		protected:
 			std::function<void(uint8_t)> onReadUint8Finished = nullptr;
-			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+			virtual void onFinishedInternal(const CAN_frame_t& msg) override;
 
 		public:
 			VideNetReadUint8ParamRequest(std::function<void(uint8_t)>&& onReadUint8FinishedFn);
@@ -99,7 +106,7 @@ namespace videnet
 	{
 		protected:
 			std::function<void(uint16_t)> onReadUInt16Finished = nullptr;
-			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+			virtual void onFinishedInternal(const CAN_frame_t& msg) override;
 
 		public:
 			VideNetReadUint16ParamRequest(std::function<void(uint16_t)>&& onReadUInt16FinishedFn);
@@ -109,7 +116,7 @@ namespace videnet
 	{
 		protected:
 			std::function<void(uint32_t)> onReadUInt32Finished = nullptr;
-			virtual void onFinishedInternal(const comps::CanMessage& msg) override;
+			virtual void onFinishedInternal(const CAN_frame_t& msg) override;
 
 		public:
 			VideNetReadUint32ParamRequest(std::function<void(uint32_t)>&& onReadUInt32FinishedFn);

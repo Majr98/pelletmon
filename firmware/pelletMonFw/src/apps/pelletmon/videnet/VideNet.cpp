@@ -1,20 +1,22 @@
 #include "VideNet.h"
+#include <Arduino.h>
 
 namespace videnet
 {
 	/* ++++++++++++++++++++++++  VideNetRequestBase  +++++++++++++++++++++++ */
 	VideNetRequest::VideNetRequest()
 	{
-		rmsg.frameId = VIDE_NET_REQUEST;
-		rmsg.u64 = 0;
-		rmsg.dataLen = 8;
+		memset(&rmsg, 0, sizeof(CAN_frame_t));
+
+		rmsg.MsgID = VIDE_NET_REQUEST;
+		rmsg.FIR.B.DLC = 8;
 	}
 
-	bool VideNetRequest::onResponse(const comps::CanMessage& msg)
+	bool VideNetRequest::onResponse(const CAN_frame_t& msg)
 	{
-		if (getHeader() && (checkType(msg.u8[0])))
+		if (getHeader() && (checkType(msg.data.u8[0])))
 		{
-			if (memcmp((const void*)&msg.u8[1], getHeader(), 3) == 0)
+			if (memcmp((const void*)&msg.data.u8[1], getHeader(), 3) == 0)
 			{
 				onFinishedInternal(msg);
 				return true;
@@ -24,10 +26,10 @@ namespace videnet
 		return false;
 	}
 
-	const comps::CanMessage& VideNetRequest::prepareMessage()
+	const CAN_frame_t& VideNetRequest::prepareMessage()
 	{
 		if (getHeader())
-			memcpy((void*)&rmsg.u8[1], getHeader(), 3);
+			memcpy((void*)&rmsg.data.u8[1], getHeader(), 3);
 
 		sendingTime = millis();
 
@@ -38,10 +40,10 @@ namespace videnet
 	/* +++++++++++++++++++   VideNetChangeParamRequest   +++++++++++++++++++ */
 	VideNetChangeParamRequest::VideNetChangeParamRequest()
 	{
-		rmsg.u8[0] = VideNetRequestType::Write;
+		rmsg.data.u8[0] = VideNetRequestType::Write;
 	}
 
-	void VideNetChangeParamRequest::onFinishedInternal(const comps::CanMessage& msg)
+	void VideNetChangeParamRequest::onFinishedInternal(const CAN_frame_t& msg)
 	{
 		if (onChangeParamFinished)
 			onChangeParamFinished();
@@ -56,7 +58,7 @@ namespace videnet
 	/* +++++++++++++++++++ VideNetChangeBoolParamRequest +++++++++++++++++++ */
 	VideNetChangeBoolParamRequest::VideNetChangeBoolParamRequest(bool value, std::function<void()>&& onFinishedFn)
 	{
-		rmsg.u8[4] = value ? 1 : 0;
+		rmsg.data.u8[4] = value ? 1 : 0;
 
 		if (onFinishedFn)
 			onChangeParamFinished = std::move(onFinishedFn);
@@ -66,7 +68,7 @@ namespace videnet
 	/* +++++++++++++++++++ VideNetChangeUint8ParamRequest +++++++++++++++++++ */
 	VideNetChangeUint8ParamRequest::VideNetChangeUint8ParamRequest(uint8_t value, std::function<void()>&& onFinishedFn)
 	{
-		rmsg.u8[4] = value;
+		rmsg.data.u8[4] = value;
 
 		if (onFinishedFn)
 			onChangeParamFinished = std::move(onFinishedFn);
@@ -83,7 +85,7 @@ namespace videnet
 
 	VideNetReadParamRequest::VideNetReadParamRequest()
 	{
-		rmsg.u8[0] = VideNetRequestType::Read;
+		rmsg.data.u8[0] = VideNetRequestType::Read;
 	}
 
 	/* --------------------------------------------------------------------- */
@@ -95,10 +97,10 @@ namespace videnet
 			onReadBoolFinished = std::move(onReadBoolFinishedFn);
 
 	}
-	void VideNetReadBoolParamRequest::onFinishedInternal(const comps::CanMessage& msg)
+	void VideNetReadBoolParamRequest::onFinishedInternal(const CAN_frame_t& msg)
 	{
 		if (onReadBoolFinished)
-			onReadBoolFinished(msg.u8[4] == 1);
+			onReadBoolFinished(msg.data.u8[4] == 1);
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -109,10 +111,10 @@ namespace videnet
 			onReadUint8Finished = std::move(onReadUint8FinishedFn);
 
 	}
-	void VideNetReadUint8ParamRequest::onFinishedInternal(const comps::CanMessage& msg)
+	void VideNetReadUint8ParamRequest::onFinishedInternal(const CAN_frame_t& msg)
 	{
 		if (onReadUint8Finished)
-			onReadUint8Finished(msg.u8[4]);
+			onReadUint8Finished(msg.data.u8[4]);
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -123,10 +125,10 @@ namespace videnet
 			onReadUInt16Finished = std::move(onReadUInt16FinishedFn);
 
 	}
-	void VideNetReadUint16ParamRequest::onFinishedInternal(const comps::CanMessage& msg)
+	void VideNetReadUint16ParamRequest::onFinishedInternal(const CAN_frame_t& msg)
 	{
 		if (onReadUInt16Finished)
-			onReadUInt16Finished(msg.u16[2]);
+			onReadUInt16Finished(msg.data.u8[5] << 8 | msg.data.u8[4]);
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -137,10 +139,20 @@ namespace videnet
 			onReadUInt32Finished = std::move(onReadUInt32FinishedFn);
 
 	}
-	void VideNetReadUint32ParamRequest::onFinishedInternal(const comps::CanMessage& msg)
+	void VideNetReadUint32ParamRequest::onFinishedInternal(const CAN_frame_t& msg)
 	{
 		if (onReadUInt32Finished)
-			onReadUInt32Finished(msg.u32[1]);
+			onReadUInt32Finished(msg.data.u32[1]);
 	}
 	/* --------------------------------------------------------------------- */
+	
+	/* +++++++++++++++++++++++++++++ VideNetPing +++++++++++++++++++++++++++ */
+	VideNetPing::VideNetPing()
+	{
+		rmsg.MsgID = VIDE_NET_PING;
+		rmsg.FIR.B.DLC = 1;
+		rmsg.data.u8[0] = 1;
+	}
+	/* --------------------------------------------------------------------- */
+
 }

@@ -1,7 +1,6 @@
 #include "PelletMon.h"
 #include "../../board.h"
 #include "../config/PelletMonConfig.h"
-#include "components/CanService.h"
 #include "components/EstymaClient.h"
 #include "ArduinoOTA.h"
 
@@ -17,8 +16,7 @@ bool PelletMon::init()
 	addComponent<ksf::ksMqttConnector>();
 	auto statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
 
-	/* Add CAN handler. */
-	canService_wp = addComponent<comps::CanService>();
+	/* Add Estyma CAN client. */
 	addComponent<comps::EstymaClient>();
 
 	/* Try to initialize superclass. It will initialize our components and tcpip (due to WiFi component). */
@@ -30,10 +28,9 @@ bool PelletMon::init()
 	ArduinoOTA.setHostname(PelletMonConfig::pelletMonDeviceName);
 	ArduinoOTA.setPassword("ota_ksiotframework");
 
-	/* We want to unbind CAN before flash start. */
-	ArduinoOTA.onStart([=]() {
-		if (auto canService_sp = canService_wp.lock())
-			canService_sp->stopService();
+	/* We want to stop CAN before flash start. */
+	ArduinoOTA.onStart([]() {
+		stop_can_module();
 	});
 
 	/* Start blinking status led. It will be disabled when Mqtt connection is established (by onMqttConnected callback). */
