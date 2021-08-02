@@ -91,7 +91,7 @@ namespace comps
 			if (rx_frame.MsgID == VIDE_NET_RESPONSE)
 			{
 				/* Handle vide net packet. Remove request if response handled. */
-				eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+				eraseVideNetRequestIf([&](std::shared_ptr<VideNetRequest> req)->bool {
 					return req->onResponse(rx_frame);
 				});
 			}
@@ -104,7 +104,7 @@ namespace comps
 			videNetRequests.push_back(request_sp);
 	}
 
-	void EstymaClient::eraseVideNetRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn)
+	void EstymaClient::eraseVideNetRequestIf(std::function<bool(std::shared_ptr<VideNetRequest> req)> fn)
 	{
 		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
 		{
@@ -176,7 +176,7 @@ namespace comps
 		}
 
 		/* Call cleanup method to kick out timed out requests. */
-		eraseVideNetRequestIf([](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+		eraseVideNetRequestIf([](std::shared_ptr<VideNetRequest> req)->bool {
 			return millis() - req->getSendingTime() > KSF_ONE_SECOND_MS;
 		});
 	}
