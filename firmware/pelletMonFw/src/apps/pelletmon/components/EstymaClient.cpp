@@ -84,6 +84,20 @@ namespace comps
 		sendVideNetRequest<VideNetSaveSettings>();
 	}
 
+	void EstymaClient::handleMessageQueue()
+	{
+		for (CAN_frame_t rx_frame; can_get_next_frame(rx_frame);)
+		{
+			if (rx_frame.MsgID == VIDE_NET_RESPONSE)
+			{
+				/* Handle vide net packet. Remove request if response handled. */
+				eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
+					return req->onResponse(rx_frame);
+				});
+			}
+		}
+	}
+
 	void EstymaClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
 		if (can_write_frame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
@@ -100,29 +114,49 @@ namespace comps
 
 	void EstymaClient::tryPublishToMqtt(const char* topic, const String& value) const
 	{
-		auto mqttConnection = mqttConn_wp.lock();
-
-		if (mqttConnection && mqttConnection->isConnected())
-		{
-			/* Blink LED on each recevied packet. */
-			if (auto statusLed_sp = statusLed_wp.lock())
-				statusLed_sp->setBlinking(75, 2);
-
+		if (auto mqttConnection = mqttConn_wp.lock())
 			mqttConnection->publish(topic, value);
-		}
 	}
 
-	void EstymaClient::handleMessageQueue()
+	void EstymaClient::uploadValuesToMqtt()
 	{
-		CAN_frame_t rx_frame;
-		while (xQueueReceive(CAN_cfg.rx_queue, &rx_frame, 0) == pdTRUE)
+		if (auto mqttConnection = mqttConn_wp.lock())
 		{
-			if (rx_frame.MsgID == VIDE_NET_RESPONSE)
+			if (mqttConnection->isConnected())
 			{
-				/* Handle vide net packet. Remove request if response handled. */
-				eraseVideNetRequestIf([&](std::shared_ptr<videnet::VideNetRequest> req)->bool {
-					return req->onResponse(rx_frame);
+				/* Request current kettle temperature. */
+				sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
+					tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
 				});
+
+				/* Request current hot water temperature. */
+				sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
+					tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
+				});
+
+				/* Request current heat mode. */
+				sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
+					tryPublishToMqtt("heatmode_current", String(heatMode + 1));
+				});
+
+				/* Request current hot water mode. */
+				sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
+					tryPublishToMqtt("hotwatermode_current", String(heatMode + 1));
+				});
+
+				/* Request total burner usage (kg * 10). */
+				sendVideNetRequest<VideNetGetBurnerUsageTotal>([&](uint32_t totalUsage) {
+					tryPublishToMqtt("burnerusage_total", String(totalUsage * 0.1f, 1));
+				});
+
+				/* Request current burner power. */
+				sendVideNetRequest<VideNetGetBurnerPower>([&](uint8_t powerPercentage) {
+					tryPublishToMqtt("burnerpower_current", String(powerPercentage));
+				});
+
+				/* Blink LED on each recevied packet. */
+				if (auto statusLed_sp = statusLed_wp.lock())
+					statusLed_sp->setBlinking(75, 4);
 			}
 		}
 	}
@@ -134,35 +168,8 @@ namespace comps
 			/* Send ping packet to kettle. It brings up our module in CAN network node list. */
 			sendVideNetRequest<VideNetPing>();
 
-			/* Request current kettle temperature. */
-			sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
-				tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
-			});
-
-			/* Request current hot water temperature. */
-			sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
-				tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
-			});
-
-			/* Request current heat mode. */
-			sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
-				tryPublishToMqtt("heatmode_current", String(heatMode + 1));
-			});
-
-			/* Request current hot water mode. */
-			sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
-				tryPublishToMqtt("hotwatermode_current", String(heatMode + 1));
-			});
-
-			/* Request total burner usage (kg * 10). */
-			sendVideNetRequest<VideNetGetBurnerUsageTotal>([&](uint32_t totalUsage) {
-				tryPublishToMqtt("burnerusage_total", String(totalUsage * 0.1f, 1));
-			});
-
-			/* Request current burner power. */
-			sendVideNetRequest<VideNetGetBurnerPower>([&](uint8_t powerPercentage) {
-				tryPublishToMqtt("burnerpower_current", String(powerPercentage));
-			});
+			/* Read params and post them. */
+			uploadValuesToMqtt();
 
 			/* Set current time as last ping time. */
 			lastVideNetPing = millis();

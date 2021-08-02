@@ -34,4 +34,7 @@ extern bool is_can_module_running();
 /* Method that writes CAN frame to ESP32 SJA1000 module. */
 extern bool can_write_frame(const CAN_frame_t& frame);
 
+/* Method that reads CAN frame from ESP32 SJA1000 module. */
+extern bool can_get_next_frame(const CAN_frame_t& frame);
+
 ///////////////////////////////////////////////////////////////////////////////////////////
