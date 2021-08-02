@@ -80,7 +80,7 @@ bool can_write_frame(const CAN_frame_t& frame)
 	return ESP32Can.CANWriteFrame(&frame) != -1;
 }
 
-/* Method that writes CAN frame to ESP32 SJA1000 module. */
+/* Method that reads CAN frame from ESP32 SJA1000 module. */
 bool can_get_next_frame(const CAN_frame_t& rx_frame)
 {
 	return xQueueReceive(CAN_cfg.rx_queue, (void*)&rx_frame, 0) == pdTRUE;
