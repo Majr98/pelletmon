@@ -7,6 +7,8 @@ CAN_device_t CAN_cfg;
 /* Method that configures ESP32 SJA1000 module using params defined in board.h. */
 void init_can_config()
 {
+	ESP32Can.CANStop();
+
 	CAN_cfg.tx_pin_id = (gpio_num_t)CAN_TX_PIN;
 	CAN_cfg.rx_pin_id = (gpio_num_t)CAN_RX_PIN;
 	CAN_cfg.rx_queue = nullptr;
