@@ -51,5 +51,7 @@ namespace comps
 		public:
 			bool init(ksf::ksComposable* owner) override;
 			bool loop() override;
+
+			void forceCanStop();
 	};
 }

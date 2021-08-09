@@ -6,17 +6,17 @@ namespace videnet
 	/* ++++++++++++++++++++++++  VideNetRequestBase  +++++++++++++++++++++++ */
 	VideNetRequest::VideNetRequest()
 	{
-		memset(&rmsg, 0, sizeof(CAN_frame_t));
+		memset(&rmsg, 0, sizeof(CAN_FRAME));
 
-		rmsg.MsgID = VIDE_NET_REQUEST;
-		rmsg.FIR.B.DLC = 8;
+		rmsg.id= VIDE_NET_REQUEST;
+		rmsg.length = 8;
 	}
 
-	bool VideNetRequest::onResponse(const CAN_frame_t& msg)
+	bool VideNetRequest::onResponse(const CAN_FRAME& msg)
 	{
-		if (getHeader() && (checkType(msg.data.u8[0])))
+		if (getHeader() && (checkType(msg.data.uint8[0])))
 		{
-			if (memcmp((const void*)&msg.data.u8[1], getHeader(), 3) == 0)
+			if (memcmp((const void*)&msg.data.uint8[1], getHeader(), 3) == 0)
 			{
 				onFinishedInternal(msg);
 				return true;
@@ -26,10 +26,10 @@ namespace videnet
 		return false;
 	}
 
-	const CAN_frame_t& VideNetRequest::prepareMessage()
+	CAN_FRAME& VideNetRequest::prepareMessage()
 	{
 		if (getHeader())
-			memcpy((void*)&rmsg.data.u8[1], getHeader(), 3);
+			memcpy((void*)&rmsg.data.uint8[1], getHeader(), 3);
 
 		sendingTime = millis();
 
@@ -40,10 +40,10 @@ namespace videnet
 	/* +++++++++++++++++++   VideNetChangeParamRequest   +++++++++++++++++++ */
 	VideNetChangeParamRequest::VideNetChangeParamRequest()
 	{
-		rmsg.data.u8[0] = VideNetRequestType::Write;
+		rmsg.data.uint8[0] = VideNetRequestType::Write;
 	}
 
-	void VideNetChangeParamRequest::onFinishedInternal(const CAN_frame_t& msg)
+	void VideNetChangeParamRequest::onFinishedInternal(const CAN_FRAME& msg)
 	{
 		if (onChangeParamFinished)
 			onChangeParamFinished();
@@ -58,7 +58,7 @@ namespace videnet
 	/* +++++++++++++++++++ VideNetChangeBoolParamRequest +++++++++++++++++++ */
 	VideNetChangeBoolParamRequest::VideNetChangeBoolParamRequest(bool value, std::function<void()>&& onFinishedFn)
 	{
-		rmsg.data.u8[4] = value ? 1 : 0;
+		rmsg.data.uint8[4] = value ? 1 : 0;
 
 		if (onFinishedFn)
 			onChangeParamFinished = std::move(onFinishedFn);
@@ -68,7 +68,7 @@ namespace videnet
 	/* +++++++++++++++++++ VideNetChangeUint8ParamRequest +++++++++++++++++++ */
 	VideNetChangeUint8ParamRequest::VideNetChangeUint8ParamRequest(uint8_t value, std::function<void()>&& onFinishedFn)
 	{
-		rmsg.data.u8[4] = value;
+		rmsg.data.uint8[4] = value;
 
 		if (onFinishedFn)
 			onChangeParamFinished = std::move(onFinishedFn);
@@ -85,7 +85,7 @@ namespace videnet
 
 	VideNetReadParamRequest::VideNetReadParamRequest()
 	{
-		rmsg.data.u8[0] = VideNetRequestType::Read;
+		rmsg.data.uint8[0] = VideNetRequestType::Read;
 	}
 
 	/* --------------------------------------------------------------------- */
@@ -97,10 +97,10 @@ namespace videnet
 			onReadBoolFinished = std::move(onReadBoolFinishedFn);
 
 	}
-	void VideNetReadBoolParamRequest::onFinishedInternal(const CAN_frame_t& msg)
+	void VideNetReadBoolParamRequest::onFinishedInternal(const CAN_FRAME& msg)
 	{
 		if (onReadBoolFinished)
-			onReadBoolFinished(msg.data.u8[4] == 1);
+			onReadBoolFinished(msg.data.uint8[4] == 1);
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -111,10 +111,10 @@ namespace videnet
 			onReadUint8Finished = std::move(onReadUint8FinishedFn);
 
 	}
-	void VideNetReadUint8ParamRequest::onFinishedInternal(const CAN_frame_t& msg)
+	void VideNetReadUint8ParamRequest::onFinishedInternal(const CAN_FRAME& msg)
 	{
 		if (onReadUint8Finished)
-			onReadUint8Finished(msg.data.u8[4]);
+			onReadUint8Finished(msg.data.uint8[4]);
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -125,10 +125,10 @@ namespace videnet
 			onReadUInt16Finished = std::move(onReadUInt16FinishedFn);
 
 	}
-	void VideNetReadUint16ParamRequest::onFinishedInternal(const CAN_frame_t& msg)
+	void VideNetReadUint16ParamRequest::onFinishedInternal(const CAN_FRAME& msg)
 	{
 		if (onReadUInt16Finished)
-			onReadUInt16Finished(msg.data.u8[5] << 8 | msg.data.u8[4]);
+			onReadUInt16Finished(msg.data.uint8[5] << 8 | msg.data.uint8[4]);
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -139,19 +139,19 @@ namespace videnet
 			onReadUInt32Finished = std::move(onReadUInt32FinishedFn);
 
 	}
-	void VideNetReadUint32ParamRequest::onFinishedInternal(const CAN_frame_t& msg)
+	void VideNetReadUint32ParamRequest::onFinishedInternal(const CAN_FRAME& msg)
 	{
 		if (onReadUInt32Finished)
-			onReadUInt32Finished(msg.data.u32[1]);
+			onReadUInt32Finished(msg.data.uint32[1]);
 	}
 	/* --------------------------------------------------------------------- */
 	
 	/* +++++++++++++++++++++++++++++ VideNetPing +++++++++++++++++++++++++++ */
 	VideNetPing::VideNetPing()
 	{
-		rmsg.MsgID = VIDE_NET_PING;
-		rmsg.FIR.B.DLC = 1;
-		rmsg.data.u8[0] = 1;
+		rmsg.id = VIDE_NET_PING;
+		rmsg.length = 1;
+		rmsg.data.uint8[0] = 1;
 	}
 	/* --------------------------------------------------------------------- */
 }

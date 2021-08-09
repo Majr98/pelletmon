@@ -1,6 +1,5 @@
 #include "board.h"
-#include <ESP32CAN.h>
-
+#include <esp32_can.h>
 /* Static CAN_cfg struct. */
 CAN_device_t CAN_cfg;
 

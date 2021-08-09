@@ -17,7 +17,7 @@ bool PelletMon::init()
 	auto statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
 
 	/* Add Estyma CAN client. */
-	addComponent<comps::EstymaClient>();
+	estymaClient_wp = addComponent<comps::EstymaClient>();
 
 	/* Try to initialize superclass. It will initialize our components and tcpip (due to WiFi component). */
 	if (!ksApplication::init())
@@ -29,8 +29,9 @@ bool PelletMon::init()
 	ArduinoOTA.setPassword("ota_ksiotframework");
 
 	/* We want to stop CAN before flash start. */
-	ArduinoOTA.onStart([]() {
-		stop_can_module();
+	ArduinoOTA.onStart([&]() {
+		if (auto estymaClient_sp = estymaClient_wp.lock())
+			estymaClient_sp->forceCanStop();
 	});
 
 	/* Start blinking status led. It will be disabled when Mqtt connection is established (by onMqttConnected callback). */

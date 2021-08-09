@@ -1,6 +1,7 @@
 #include "../../../board.h"
 #include "../videnet/VideNet.h"
 #include "EstymaClient.h"
+#include <esp32_can.h>
 
 using namespace videnet;
 using namespace std::placeholders;
@@ -24,10 +25,11 @@ namespace comps
 		}
 
 		/* Pre-initialize CAN bus. */
-		init_can_config();
+		CAN0.setCANPins((gpio_num_t)CAN_RX_PIN, (gpio_num_t)CAN_TX_PIN);
+		CAN0.init(125000);
 
 		/* Pre-initialize filter - accept only VIDE NET responses. */
-		init_can_filter(VIDE_NET_RESPONSE);
+		CAN0.watchFor(VIDE_NET_RESPONSE);
 
 		return true;
 	}
@@ -43,7 +45,7 @@ namespace comps
 			mqtt_sp->subscribe("set/#");
 
 		/* Run CAN service. */
-		start_can_module();
+		CAN0.enable();
 	}
 	
 	void EstymaClient::onMqttDisconnected()
@@ -56,7 +58,7 @@ namespace comps
 			statusLed_sp->setBlinking(500);
 
 		/* Stop CAN service. */
-		stop_can_module();
+		CAN0.disable();
 	}
 
 	void EstymaClient::onMqttMessage(const String& topic, const String& message)
@@ -86,9 +88,10 @@ namespace comps
 
 	void EstymaClient::handleMessageQueue()
 	{
-		for (CAN_frame_t rx_frame; can_get_next_frame(rx_frame);)
+		CAN_FRAME frame;
+		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
-			if (rx_frame.MsgID == VIDE_NET_RESPONSE)
+			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
 				/* Handle vide net packet. Remove request if response handled. */
 				eraseVideNetRequestIf([&](std::shared_ptr<VideNetRequest> req)->bool {
@@ -100,7 +103,7 @@ namespace comps
 
 	void EstymaClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
-		if (can_write_frame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
+		if (CAN0.sendFrame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
 			videNetRequests.push_back(request_sp);
 	}
 
@@ -183,7 +186,7 @@ namespace comps
 
 	bool EstymaClient::loop()
 	{
-		if (is_can_module_running())
+		if (!CAN0.isFaulted())
 		{
 			/* Handles pending messages in queue. */
 			handleMessageQueue();
@@ -193,5 +196,10 @@ namespace comps
 		}
 
 		return true;
+	}
+
+	void EstymaClient::forceCanStop()
+	{
+		CAN0.disable();
 	}
 }
