@@ -51,9 +51,6 @@
     <ClCompile Include="src\apps\pelletmon\videnet\VideNet.cpp">
       <Filter>src\apps\pelletmon\videnet</Filter>
     </ClCompile>
-    <ClCompile Include="src\board.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="pelletMonFw.ino" />
