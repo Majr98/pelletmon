@@ -202,31 +202,25 @@ namespace videnet
 
 	namespace BurnerStatus
 	{
-		enum TYPE
+		static char* Desc[] =
 		{
-			Standby,
-			Ignition,
-			Heating,
-			Degiklis1,
-			Degiklis2,
-			Modulation,
-			Extinguishing,
-			Cleaning,
-			Working,
-			Stopped
+			"Standby",
+			"Ignition",
+			"Heating",
+			"Degiklis1",
+			"Degiklis2",
+			"Modulation",
+			"Extinguishing",
+			"Cleaning",
+			"Working",
+			"Stopped"
 		};
 	}
 
 
 	class VideNetGetBurnerStatus : public VideNetReadUint8ParamRequest
 	{
-		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;
+		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;	
 		const void* getHeader() const override { return "\x07\x20\x01"; }
-	};
-
-	class VideNetGetBurnerFailures : public VideNetReadUint16ParamRequest
-	{
-		using VideNetReadUint16ParamRequest::VideNetReadUint16ParamRequest;
-		const void* getHeader() const override { return "\x88\x20\x01"; }
 	};
 }

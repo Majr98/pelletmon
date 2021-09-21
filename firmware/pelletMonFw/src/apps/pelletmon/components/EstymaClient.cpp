@@ -157,6 +157,11 @@ namespace comps
 					tryPublishToMqtt("burnerpower_current", String(powerPercentage));
 				});
 
+				/* Request current burner status. */
+				sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
+					tryPublishToMqtt("burnerstatus_current", String(BurnerStatus::Desc[currentBurnerStatus]));
+				});
+
 				/* Blink LED on each recevied packet. */
 				if (auto statusLed_sp = statusLed_wp.lock())
 					statusLed_sp->setBlinking(75, 4);
