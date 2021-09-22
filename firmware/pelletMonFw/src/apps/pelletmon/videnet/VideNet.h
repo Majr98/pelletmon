@@ -202,7 +202,7 @@ namespace videnet
 
 	namespace BurnerStatus
 	{
-		static char* Desc[] =
+		static const char* Desc[] =
 		{
 			"Standby",
 			"Ignition",
