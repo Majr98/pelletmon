@@ -65,17 +65,23 @@ namespace comps
 	{
 		if (topic.equals("set/controller"))
 		{
-			sendVideNetRequest<VideNetSetController>(message.toInt() == 1);
+			sendVideNetRequest<VideNetSetController>(message.toInt() == 1, [&]() {
+				uploadValuesToMqtt();
+			});
 		}
 		else if (topic.equals("set/heatmode"))
 		{
 			uint8_t heatMode = message.toInt() - 1;
-			sendVideNetRequest<VideNetSetHeatMode>(heatMode < 4 ? heatMode : HeatMode::Off);
+			sendVideNetRequest<VideNetSetHeatMode>(heatMode < 4 ? heatMode : HeatMode::Off, [&](){
+				uploadValuesToMqtt();
+			});
 		}
 		else if (topic.equals("set/hotwatermode"))
 		{
 			uint8_t hotWaterMode = message.toInt() - 1;
-			sendVideNetRequest<VideNetSetHotWaterMode>(hotWaterMode < 4 ? hotWaterMode : HeatMode::Off);
+			sendVideNetRequest<VideNetSetHotWaterMode>(hotWaterMode < 4 ? hotWaterMode : HeatMode::Off, [&]() {
+				uploadValuesToMqtt();
+			});
 		}
 		else return;
 
