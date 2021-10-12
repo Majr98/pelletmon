@@ -159,7 +159,7 @@ namespace comps
 
 				/* Request current burner status. */
 				sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
-					tryPublishToMqtt("burnerstatus_current", String(BurnerStatus::Desc[currentBurnerStatus]));
+					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus + 1));
 				});
 
 				/* Blink LED on each recevied packet. */

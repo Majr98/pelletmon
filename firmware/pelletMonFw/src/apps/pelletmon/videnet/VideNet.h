@@ -199,7 +199,7 @@ namespace videnet
 		const void* getHeader() const override { return "\x05\x40\x01"; }
 	};
 
-
+	/*
 	namespace BurnerStatus
 	{
 		static const char* Desc[] =
@@ -216,6 +216,7 @@ namespace videnet
 			"Stopped"
 		};
 	}
+	*/
 
 
 	class VideNetGetBurnerStatus : public VideNetReadUint8ParamRequest
