@@ -16,7 +16,8 @@ namespace videnet
 		{
 			Change = 0x22,
 			ChangeDone = 0x60,
-			Read = 0x40
+			Read = 0x40,
+			ReadDone = 0x42
 		};
 	}
 
@@ -222,11 +223,5 @@ namespace videnet
 	{
 		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;	
 		const void* getHeader() const override { return "\x07\x20\x01"; }
-	};
-
-	class VideNetGetBurnerFailures : public VideNetReadUint16ParamRequest
-	{
-		using VideNetReadUint16ParamRequest::VideNetReadUint16ParamRequest;
-		const void* getHeader() const override { return "\x88\x20\x01"; }
 	};
 }

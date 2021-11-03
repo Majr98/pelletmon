@@ -166,11 +166,6 @@ namespace comps
 				sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
 					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus + 1));
 				});
-
-				/* Request current burner failures. */
-				sendVideNetRequest<VideNetGetBurnerFailures>([&](uint16_t failures) {
-					tryPublishToMqtt("burner_failures", String(failures));
-				});
 				
 				/* Blink LED. */
 				if (auto statusLed_sp = statusLed_wp.lock())

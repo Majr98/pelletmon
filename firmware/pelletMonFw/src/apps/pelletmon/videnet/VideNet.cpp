@@ -80,9 +80,7 @@ namespace videnet
 	/* +++++++++++++++++++   VideNetReadParamRequest   +++++++++++++++++++ */
 	bool VideNetReadParamRequest::checkType(uint8_t type)
 	{
-		// Sometimes response type is 0x42, 0x43 or even 0x80 for Read request.
-		// Thats why it's better to check if it's not 'change done' message instead.
-		return type != VideNetRequestType::ChangeDone;
+		return type == VideNetRequestType::ReadDone;
 	}
 
 	VideNetReadParamRequest::VideNetReadParamRequest()
