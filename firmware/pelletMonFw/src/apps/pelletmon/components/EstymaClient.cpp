@@ -94,7 +94,6 @@ namespace comps
 
 	void EstymaClient::handleMessageQueue()
 	{
-		CAN_FRAME frame;
 		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
@@ -168,7 +167,12 @@ namespace comps
 					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus + 1));
 				});
 
-				/* Blink LED on each recevied packet. */
+				/* Request current burner failures. */
+				sendVideNetRequest<VideNetGetBurnerFailures>([&](uint16_t failures) {
+					tryPublishToMqtt("burner_failures", String(failures));
+				});
+				
+				/* Blink LED. */
 				if (auto statusLed_sp = statusLed_wp.lock())
 					statusLed_sp->setBlinking(75, 4);
 			}

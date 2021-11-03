@@ -40,7 +40,7 @@ namespace videnet
 	/* +++++++++++++++++++   VideNetChangeParamRequest   +++++++++++++++++++ */
 	VideNetChangeParamRequest::VideNetChangeParamRequest()
 	{
-		rmsg.data.uint8[0] = VideNetRequestType::Write;
+		rmsg.data.uint8[0] = VideNetRequestType::Change;
 	}
 
 	void VideNetChangeParamRequest::onFinishedInternal(const CAN_FRAME& msg)
@@ -51,7 +51,7 @@ namespace videnet
 
 	bool VideNetChangeParamRequest::checkType(uint8_t type)
 	{
-		return type == VideNetRequestType::WriteDone;
+		return type == VideNetRequestType::ChangeDone;
 	}
 	/* --------------------------------------------------------------------- */
 
@@ -80,7 +80,9 @@ namespace videnet
 	/* +++++++++++++++++++   VideNetReadParamRequest   +++++++++++++++++++ */
 	bool VideNetReadParamRequest::checkType(uint8_t type)
 	{
-		return type == VideNetRequestType::ReadDone;
+		// Sometimes response type is 0x42, 0x43 or even 0x80 for Read request.
+		// Thats why it's better to check if it's not 'change done' message instead.
+		return type != VideNetRequestType::ChangeDone;
 	}
 
 	VideNetReadParamRequest::VideNetReadParamRequest()
