@@ -71,14 +71,14 @@ namespace comps
 		}
 		else if (topic.equals("set/heatmode"))
 		{
-			uint8_t heatMode = message.toInt() - 1;
+			uint8_t heatMode = message.toInt();
 			sendVideNetRequest<VideNetSetHeatMode>(heatMode < 4 ? heatMode : HeatMode::Off, [&](){
 				uploadValuesToMqtt();
 			});
 		}
 		else if (topic.equals("set/hotwatermode"))
 		{
-			uint8_t hotWaterMode = message.toInt() - 1;
+			uint8_t hotWaterMode = message.toInt();
 			sendVideNetRequest<VideNetSetHotWaterMode>(hotWaterMode < 4 ? hotWaterMode : HeatMode::Off, [&]() {
 				uploadValuesToMqtt();
 			});
@@ -144,12 +144,12 @@ namespace comps
 
 				/* Request current heat mode. */
 				sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
-					tryPublishToMqtt("heatmode_current", String(heatMode + 1));
+					tryPublishToMqtt("heatmode_current", String(heatMode));
 				});
 
 				/* Request current hot water mode. */
 				sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
-					tryPublishToMqtt("hotwatermode_current", String(heatMode + 1));
+					tryPublishToMqtt("hotwatermode_current", String(heatMode));
 				});
 
 				/* Request total burner usage (kg * 10). */
@@ -164,7 +164,7 @@ namespace comps
 
 				/* Request current burner status. */
 				sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
-					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus + 1));
+					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus));
 				});
 				
 				/* Blink LED. */
