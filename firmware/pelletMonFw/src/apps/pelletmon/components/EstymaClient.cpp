@@ -166,6 +166,15 @@ namespace comps
 				sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
 					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus));
 				});
+
+				/* Request current alarm. */
+				sendVideNetRequest<VideNetGetAlarmPointer>([&](uint8_t alarmPointer) {
+					tryPublishToMqtt("burner_alarm_ptr", String(alarmPointer));
+
+					sendVideNetRequest<VideNetGetAlarmAckTime>(alarmPointer, [=](uint32_t alarmAckTime) {
+						tryPublishToMqtt("burner_alarm_time", String(alarmAckTime));
+					});
+				});
 				
 				/* Blink LED. */
 				if (auto statusLed_sp = statusLed_wp.lock())

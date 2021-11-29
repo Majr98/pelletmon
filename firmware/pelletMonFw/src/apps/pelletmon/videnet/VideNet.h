@@ -199,29 +199,24 @@ namespace videnet
 		const void* getHeader() const override { return "\x05\x40\x01"; }
 	};
 
-	/*
-	namespace BurnerStatus
+	class VideNetGetAlarmPointer : public VideNetReadUint8ParamRequest
 	{
-		static const char* Desc[] =
-		{
-			"Standby",
-			"Ignition",
-			"Heating",
-			"Degiklis1",
-			"Degiklis2",
-			"Modulation",
-			"Extinguishing",
-			"Cleaning",
-			"Working",
-			"Stopped"
-		};
-	}
-	*/
+		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;
+		const void* getHeader() const override { return "\x4c\x40\x01"; }
+	};
 
+	class VideNetGetAlarmAckTime : public VideNetReadUint32ParamRequest
+	{
+		uint8_t header[3];
+		const void* getHeader() const override { return header; }
+
+		public:
+			VideNetGetAlarmAckTime(uint8_t index, std::function<void(uint32_t)>&& onReadFinished);
+	};
 
 	class VideNetGetBurnerStatus : public VideNetReadUint8ParamRequest
 	{
-		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;	
+		using VideNetReadUint8ParamRequest::VideNetReadUint8ParamRequest;
 		const void* getHeader() const override { return "\x07\x20\x01"; }
 	};
 }

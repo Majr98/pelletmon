@@ -8,7 +8,7 @@ namespace videnet
 	{
 		memset(&rmsg, 0, sizeof(CAN_FRAME));
 
-		rmsg.id= VIDE_NET_REQUEST;
+		rmsg.id = VIDE_NET_REQUEST;
 		rmsg.length = 8;
 	}
 
@@ -145,13 +145,22 @@ namespace videnet
 			onReadUInt32Finished(msg.data.uint32[1]);
 	}
 	/* --------------------------------------------------------------------- */
-	
+
 	/* +++++++++++++++++++++++++++++ VideNetPing +++++++++++++++++++++++++++ */
 	VideNetPing::VideNetPing()
 	{
 		rmsg.id = VIDE_NET_PING;
 		rmsg.length = 1;
 		rmsg.data.uint8[0] = 1;
+	}
+	/* --------------------------------------------------------------------- */
+
+	/* +++++++++++++++++++++++++++++ VideNetGetAlarmPointer +++++++++++++++++++++++++++ */
+	VideNetGetAlarmAckTime::VideNetGetAlarmAckTime(uint8_t index, std::function<void(uint32_t)>&& onReadFinished) :
+		VideNetReadUint32ParamRequest(std::move(onReadFinished))
+	{
+		header[0] = (index > 0 && index < 20) ? index + 0x37 : 0x4b;
+		*(uint16_t*)(&header[1]) = 0x0140;
 	}
 	/* --------------------------------------------------------------------- */
 }
