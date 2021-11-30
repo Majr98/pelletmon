@@ -169,10 +169,9 @@ namespace comps
 
 				/* Request current alarm. */
 				sendVideNetRequest<VideNetGetAlarmPointer>([&](uint8_t alarmPointer) {
-					tryPublishToMqtt("burner_alarm_ptr", String(alarmPointer));
-
 					sendVideNetRequest<VideNetGetAlarmAckTime>(alarmPointer, [=](uint32_t alarmAckTime) {
-						tryPublishToMqtt("burner_alarm_time", String(alarmAckTime));
+						uint8_t alarmActive = alarmAckTime == 0 ? 1 : 0;
+						tryPublishToMqtt("burner_alarm_active", String(alarmActive));
 					});
 				});
 				
