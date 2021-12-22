@@ -18,7 +18,7 @@ Requires ESP32_CAN library with CAN Common + ksIotFrameworkLib dependencies.
 ## Components
 
 PelletMon app is divided into components, that handle specific tasks.
-* EstymaClient - handles Estyma CAN protocol (reads message from queue in loop but is also able to send messages), handles VideNet communication also as well.
+* VideNetClient - handles VideNet CAN protocol (reads message from queue in loop but is also able to send messages), handles VideNet communication also as well.
 
 ## Other classes
 * VideNet - contains message classes and general protocol implementation for VideNet. Used by EstymaClient to handle VideNet specific messages.
@@ -33,3 +33,4 @@ PelletMon app is divided into components, that handle specific tasks.
 * Robert Labuz for his awesome support.
 * Damian Nowakowski for being my rubber duck.
 * Patryk Pietruszka for dissucssing a lot of problems.
+* Damian Kwolek for service hosting.
