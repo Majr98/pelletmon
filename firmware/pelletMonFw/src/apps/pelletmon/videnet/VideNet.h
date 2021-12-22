@@ -25,7 +25,7 @@ namespace videnet
 	{
 		protected:
 			CAN_FRAME rmsg;
-			virtual bool checkType(uint8_t value) { return false; }
+			virtual bool checkType(uint8_t value) const { return false; }
 			virtual void onFinishedInternal(const CAN_FRAME& msg) {};
 			virtual const void* getHeader() const { return nullptr; }
 
@@ -53,7 +53,7 @@ namespace videnet
 		protected:
 			std::function<void()> onChangeParamFinished = nullptr;
 
-			bool checkType(uint8_t value) override;
+			bool checkType(uint8_t value) const override;
 			void onFinishedInternal(const CAN_FRAME& msg) override;
 
 		public:
@@ -76,7 +76,7 @@ namespace videnet
 	class VideNetReadParamRequest : public VideNetRequest
 	{
 		protected:
-			bool checkType(uint8_t value) override;
+			bool checkType(uint8_t value) const override;
 
 		public:
 			VideNetReadParamRequest();

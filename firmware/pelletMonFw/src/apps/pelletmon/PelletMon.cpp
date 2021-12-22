@@ -1,7 +1,7 @@
 #include "PelletMon.h"
 #include "../../board.h"
 #include "../config/PelletMonConfig.h"
-#include "components/EstymaClient.h"
+#include "components/VideNetClient.h"
 #include "ArduinoOTA.h"
 
 using namespace std::placeholders;
@@ -16,8 +16,8 @@ bool PelletMon::init()
 	addComponent<ksf::ksMqttConnector>();
 	auto statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
 
-	/* Add Estyma CAN client. */
-	estymaClient_wp = addComponent<comps::EstymaClient>();
+	/* Add VideNet CAN client. */
+	videNetClient_wp = addComponent<comps::VideNetClient>();
 
 	/* Try to initialize superclass. It will initialize our components and tcpip (due to WiFi component). */
 	if (!ksApplication::init())
@@ -30,8 +30,8 @@ bool PelletMon::init()
 
 	/* We want to stop CAN before flash start. */
 	ArduinoOTA.onStart([&]() {
-		if (auto estymaClient_sp = estymaClient_wp.lock())
-			estymaClient_sp->forceCanStop();
+		if (auto videNetClient_sp = videNetClient_wp.lock())
+			videNetClient_sp->forceCanStop();
 	});
 
 	/* Start blinking status led. It will be disabled when Mqtt connection is established (by onMqttConnected callback). */

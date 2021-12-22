@@ -1,6 +1,6 @@
 #include "../../../board.h"
 #include "../videnet/VideNet.h"
-#include "EstymaClient.h"
+#include "VideNetClient.h"
 #include <esp32_can.h>
 
 using namespace videnet;
@@ -8,7 +8,7 @@ using namespace std::placeholders;
 
 namespace comps
 {
-	bool EstymaClient::init(ksf::ksComposable* owner)
+	bool VideNetClient::init(ksf::ksComposable* owner)
 	{
 		/* Grab weak pointer for MQTT Connector. */
 		mqttConn_wp = owner->findComponent<ksf::ksMqttConnector>();
@@ -19,9 +19,9 @@ namespace comps
 		/* Bind to MQTT events. */
 		if (auto mqtt_sp = mqttConn_wp.lock())
 		{
-			mqtt_sp->onConnected->registerEvent(connEventHandle_sp, std::bind(&EstymaClient::onMqttConnected, this));
-			mqtt_sp->onMesssage->registerEvent(msgEventHandle_sp, std::bind(&EstymaClient::onMqttMessage, this, _1, _2));
-			mqtt_sp->onDisconnected->registerEvent(disEventHandle_sp, std::bind(&EstymaClient::onMqttDisconnected, this));
+			mqtt_sp->onConnected->registerEvent(connEventHandle_sp, std::bind(&VideNetClient::onMqttConnected, this));
+			mqtt_sp->onMesssage->registerEvent(msgEventHandle_sp, std::bind(&VideNetClient::onMqttMessage, this, _1, _2));
+			mqtt_sp->onDisconnected->registerEvent(disEventHandle_sp, std::bind(&VideNetClient::onMqttDisconnected, this));
 		}
 
 		/* Pre-initialize CAN bus. */
@@ -34,7 +34,7 @@ namespace comps
 		return true;
 	}
 
-	void EstymaClient::onMqttConnected()
+	void VideNetClient::onMqttConnected()
 	{
 		/* Stop blinking status led on MQTT connect. */
 		if (auto statusLed_sp = statusLed_wp.lock())
@@ -48,7 +48,7 @@ namespace comps
 		CAN0.enable();
 	}
 	
-	void EstymaClient::onMqttDisconnected()
+	void VideNetClient::onMqttDisconnected()
 	{
 		/* Clear pending requests. */
 		videNetRequests.clear();
@@ -61,7 +61,7 @@ namespace comps
 		CAN0.disable();
 	}
 
-	void EstymaClient::onMqttMessage(const String& topic, const String& message)
+	void VideNetClient::onMqttMessage(const String& topic, const String& message)
 	{
 		if (topic.equals("set/controller"))
 		{
@@ -92,27 +92,27 @@ namespace comps
 		sendVideNetRequest<VideNetSaveSettings>();
 	}
 
-	void EstymaClient::handleMessageQueue()
+	void VideNetClient::handleMessageQueue()
 	{
 		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
 				/* Handle vide net packet. Remove request if response handled. */
-				eraseVideNetRequestIf([&](std::shared_ptr<VideNetRequest> req)->bool {
+				eraseVideNetRequestByPredicate([&](std::shared_ptr<VideNetRequest> req)->bool {
 					return req->onResponse(rx_frame);
 				});
 			}
 		}
 	}
 
-	void EstymaClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
+	void VideNetClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
 		if (CAN0.sendFrame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
 			videNetRequests.push_back(request_sp);
 	}
 
-	void EstymaClient::eraseVideNetRequestIf(std::function<bool(std::shared_ptr<VideNetRequest> req)> fn)
+	void VideNetClient::eraseVideNetRequestByPredicate(std::function<bool(std::shared_ptr<VideNetRequest> req)> fn)
 	{
 		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
 		{
@@ -120,13 +120,13 @@ namespace comps
 		}
 	}
 
-	void EstymaClient::tryPublishToMqtt(const char* topic, const String& value) const
+	void VideNetClient::tryPublishToMqtt(const char* topic, const String& value) const
 	{
 		if (auto mqttConnection = mqttConn_wp.lock())
 			mqttConnection->publish(topic, value);
 	}
 
-	void EstymaClient::uploadValuesToMqtt()
+	void VideNetClient::uploadValuesToMqtt()
 	{
 		if (auto mqttConnection = mqttConn_wp.lock())
 		{
@@ -182,7 +182,7 @@ namespace comps
 		}
 	}
 
-	void EstymaClient::handleVideNetPeriodicOps()
+	void VideNetClient::handleVideNetPeriodicOps()
 	{
 		if (millis() - lastVideNetPing > VIDE_NET_PING_DELAY)
 		{
@@ -197,12 +197,12 @@ namespace comps
 		}
 
 		/* Call cleanup method to kick out timed out requests. */
-		eraseVideNetRequestIf([](std::shared_ptr<VideNetRequest> req)->bool {
+		eraseVideNetRequestByPredicate([](std::shared_ptr<VideNetRequest> req)->bool {
 			return millis() - req->getSendingTime() > KSF_ONE_SECOND_MS;
 		});
 	}
 
-	bool EstymaClient::loop()
+	bool VideNetClient::loop()
 	{
 		if (!CAN0.isFaulted())
 		{
@@ -216,7 +216,7 @@ namespace comps
 		return true;
 	}
 
-	void EstymaClient::forceCanStop()
+	void VideNetClient::forceCanStop()
 	{
 		CAN0.disable();
 	}

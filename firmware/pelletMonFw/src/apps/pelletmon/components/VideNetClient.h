@@ -8,7 +8,7 @@ namespace videnet
 
 namespace comps
 {
-	class EstymaClient : public ksf::ksComponent
+	class VideNetClient : public ksf::ksComponent
 	{
 		protected:
 			std::weak_ptr<ksf::ksMqttConnector> mqttConn_wp;
@@ -23,7 +23,7 @@ namespace comps
 			void onMqttDisconnected();
 
 			void queueVideNetRequest(std::shared_ptr<videnet::VideNetRequest> request_sp);
-			void eraseVideNetRequestIf(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn);
+			void eraseVideNetRequestByPredicate(std::function<bool(std::shared_ptr<videnet::VideNetRequest> req)> fn);
 
 			template <class Type, class... Params>
 			std::weak_ptr<Type> sendVideNetRequest(Params...rest)
