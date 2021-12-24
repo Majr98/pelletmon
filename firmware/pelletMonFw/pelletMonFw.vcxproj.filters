@@ -8,7 +8,7 @@
     <ClInclude Include="src\apps\pelletmon\PelletMon.h">
       <Filter>src\apps\pelletmon</Filter>
     </ClInclude>
-    <ClInclude Include="src\apps\pelletmon\components\EstymaClient.h">
+    <ClInclude Include="src\apps\pelletmon\components\VideNetClient.h">
       <Filter>src\apps\pelletmon\comps</Filter>
     </ClInclude>
     <ClInclude Include="src\apps\config\PelletMonConfig.h">
@@ -42,7 +42,7 @@
     <ClCompile Include="src\apps\pelletmon\PelletMon.cpp">
       <Filter>src\apps\pelletmon</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\pelletmon\components\EstymaClient.cpp">
+    <ClCompile Include="src\apps\pelletmon\components\VideNetClient.cpp">
       <Filter>src\apps\pelletmon\comps</Filter>
     </ClCompile>
     <ClCompile Include="src\apps\config\PelletMonConfig.cpp">
