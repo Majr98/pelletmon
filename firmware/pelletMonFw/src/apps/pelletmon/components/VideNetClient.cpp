@@ -26,7 +26,7 @@ namespace comps
 
 		/* Pre-initialize CAN bus. */
 		CAN0.setCANPins((gpio_num_t)CAN_RX_PIN, (gpio_num_t)CAN_TX_PIN);
-		CAN0.init(125000);
+		CAN0.init(CAN_PROTO_SPEED);
 
 		/* Pre-initialize filter - accept only VIDE NET responses. */
 		CAN0.watchFor(VIDE_NET_RESPONSE);
@@ -72,14 +72,14 @@ namespace comps
 		else if (topic.equals("set/heatmode"))
 		{
 			uint8_t heatMode = message.toInt();
-			sendVideNetRequest<VideNetSetHeatMode>(heatMode < 4 ? heatMode : HeatMode::Off, [&](){
+			sendVideNetRequest<VideNetSetHeatMode>(heatMode < HeatMode::MAX ? heatMode : HeatMode::Off, [&](){
 				uploadValuesToMqtt();
 			});
 		}
 		else if (topic.equals("set/hotwatermode"))
 		{
 			uint8_t hotWaterMode = message.toInt();
-			sendVideNetRequest<VideNetSetHotWaterMode>(hotWaterMode < 4 ? hotWaterMode : HeatMode::Off, [&]() {
+			sendVideNetRequest<VideNetSetHotWaterMode>(hotWaterMode < HeatMode::MAX ? hotWaterMode : HeatMode::Off, [&]() {
 				uploadValuesToMqtt();
 			});
 		}

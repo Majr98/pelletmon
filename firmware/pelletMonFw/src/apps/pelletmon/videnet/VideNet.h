@@ -129,7 +129,8 @@ namespace videnet
 			Off,
 			Eco,
 			Timer,
-			Comfort
+			Comfort,
+			MAX
 		};
 	}
 

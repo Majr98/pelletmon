@@ -4,7 +4,7 @@
 
 #define CAN_RX_PIN 4
 #define CAN_TX_PIN 5
-#define CAN_SPEED CAN_SPEED_125KBPS
+#define CAN_PROTO_SPEED 125000
 
 #define HCSR05_ECHO_PIN 32
 #define HCSR05_TRIG_PIN 33
