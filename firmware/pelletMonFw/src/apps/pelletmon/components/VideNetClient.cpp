@@ -98,32 +98,24 @@ namespace comps
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
-				/* Handle vide net packet. Remove request if response handled. */
-				eraseVideNetRequestByPredicate([&](std::shared_ptr<VideNetRequest> req)->bool {
-					return req->onResponse(rx_frame);
-				});
+				/* Handle vide net packet. Create a list of  still pending requests. */
+				for (auto& req : videNetRequests)
+				{
+					if (!req->onResponse(rx_frame) && (millis() - req->getSendingTime() < KSF_ONE_SECOND_MS))
+						stillValidRequests.push_back(req);
+				}
+
+				/* Swap old list of pending requests with new list. */
+				videNetRequests = std::move(stillValidRequests);
+				stillValidRequests.clear();
 			}
 		}
-
-		/* Insert new request to pending requests table. */
-		videNetRequests.insert(videNetRequests.end(), newVideNetRequests.begin(), newVideNetRequests.end());
-
-		/* Clear new pending requests. */
-		newVideNetRequests.clear();
 	}
 
 	void VideNetClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
 		if (CAN0.sendFrame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
-			newVideNetRequests.push_back(request_sp);
-	}
-
-	void VideNetClient::eraseVideNetRequestByPredicate(std::function<bool(std::shared_ptr<VideNetRequest> req)> fn)
-	{
-		for (auto it = videNetRequests.begin(); it != videNetRequests.end();)
-		{
-			it = fn(*it) ? videNetRequests.erase(it) : it + 1;
-		}
+			stillValidRequests.push_back(request_sp);
 	}
 
 	void VideNetClient::tryPublishToMqtt(const char* topic, const String& value) const
@@ -201,11 +193,6 @@ namespace comps
 			/* Set current time as last ping time. */
 			lastVideNetPing = millis();
 		}
-
-		/* Call cleanup method to kick out timed out requests. */
-		eraseVideNetRequestByPredicate([&](std::shared_ptr<VideNetRequest> req)->bool {
-			return millis() - req->getSendingTime() > KSF_ONE_SECOND_MS;
-		});
 	}
 
 	bool VideNetClient::loop()
