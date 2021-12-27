@@ -104,12 +104,18 @@ namespace comps
 				});
 			}
 		}
+
+		/* Insert new request to pending requests table. */
+		videNetRequests.insert(videNetRequests.end(), newVideNetRequests.begin(), newVideNetRequests.end());
+
+		/* Clear new pending requests. */
+		newVideNetRequests.clear();
 	}
 
 	void VideNetClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
 		if (CAN0.sendFrame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
-			videNetRequests.push_back(request_sp);
+			newVideNetRequests.push_back(request_sp);
 	}
 
 	void VideNetClient::eraseVideNetRequestByPredicate(std::function<bool(std::shared_ptr<VideNetRequest> req)> fn)
@@ -197,7 +203,7 @@ namespace comps
 		}
 
 		/* Call cleanup method to kick out timed out requests. */
-		eraseVideNetRequestByPredicate([](std::shared_ptr<VideNetRequest> req)->bool {
+		eraseVideNetRequestByPredicate([&](std::shared_ptr<VideNetRequest> req)->bool {
 			return millis() - req->getSendingTime() > KSF_ONE_SECOND_MS;
 		});
 	}
@@ -206,11 +212,11 @@ namespace comps
 	{
 		if (!CAN0.isFaulted())
 		{
-			/* Handles pending messages in queue. */
-			handleMessageQueue();
-
 			/* Handles periodic VideNet operations (clean up requests, send info to MQTT etc...). */
 			handleVideNetPeriodicOps();
+
+			/* Handles pending messages in queue. */
+			handleMessageQueue();
 		}
 
 		return true;
