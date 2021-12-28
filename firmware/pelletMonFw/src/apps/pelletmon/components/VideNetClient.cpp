@@ -89,25 +89,34 @@ namespace comps
 		if (auto statusLed_sp = statusLed_wp.lock())
 			statusLed_sp->setBlinking(100, 4);
 
+		/* Save settings to kettle EEPROM. */
 		sendVideNetRequest<VideNetSaveSettings>();
 	}
 
 	void VideNetClient::handleMessageQueue()
 	{
+		/* Queue remove of timed out requests. */
+		for (auto& req : videNetRequests.items())
+		{
+			if ((millis() - req->getSendingTime() < KSF_ONE_SECOND_MS))
+				videNetRequests.queueRemove(req);
+		}
+
+		/* Synchronize requests. */
 		videNetRequests.synchronizeQueues();
 
 		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
-				/* Handle vide net packet. Create a list of  still pending requests. */
+				/* Handle vide net packet. Handle plus remove handled requests. */
 				for (auto& req : videNetRequests.items())
 				{
-					if (req->onResponse(rx_frame) || (millis() - req->getSendingTime() < KSF_ONE_SECOND_MS))
+					if (req->onResponse(rx_frame))
 						videNetRequests.queueRemove(req);
 				}
 
-				/* Synchronize added/removed requests */
+				/* Synchronize requests. */
 				videNetRequests.synchronizeQueues();
 			}
 		}
