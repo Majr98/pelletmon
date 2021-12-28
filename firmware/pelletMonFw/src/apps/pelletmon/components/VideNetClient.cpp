@@ -51,7 +51,7 @@ namespace comps
 	void VideNetClient::onMqttDisconnected()
 	{
 		/* Clear pending requests. */
-		videNetRequests.clear();
+		videNetRequests.unsafeEraseAllQueues();
 
 		/* Start blinking status led on MQTT disconnect. */
 		if (auto statusLed_sp = statusLed_wp.lock())
@@ -94,20 +94,21 @@ namespace comps
 
 	void VideNetClient::handleMessageQueue()
 	{
+		videNetRequests.synchronizeQueues();
+
 		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
 				/* Handle vide net packet. Create a list of  still pending requests. */
-				for (auto& req : videNetRequests)
+				for (auto& req : videNetRequests.items())
 				{
-					if (!req->onResponse(rx_frame) && (millis() - req->getSendingTime() < KSF_ONE_SECOND_MS))
-						stillValidRequests.push_back(req);
+					if (req->onResponse(rx_frame) || (millis() - req->getSendingTime() < KSF_ONE_SECOND_MS))
+						videNetRequests.queueRemove(req);
 				}
 
-				/* Swap old list of pending requests with new list. */
-				videNetRequests = std::move(stillValidRequests);
-				stillValidRequests.clear();
+				/* Synchronize added/removed requests */
+				videNetRequests.synchronizeQueues();
 			}
 		}
 	}
@@ -115,7 +116,7 @@ namespace comps
 	void VideNetClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
 		if (CAN0.sendFrame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
-			stillValidRequests.push_back(request_sp);
+			videNetRequests.queueAdd(request_sp);
 	}
 
 	void VideNetClient::tryPublishToMqtt(const char* topic, const String& value) const

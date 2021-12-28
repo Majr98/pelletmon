@@ -15,7 +15,7 @@ namespace comps
 			std::weak_ptr<ksf::ksLed> statusLed_wp;
 			std::shared_ptr<ksf::ksEventHandle> connEventHandle_sp, disEventHandle_sp, msgEventHandle_sp;
 			
-			std::vector<std::shared_ptr<videnet::VideNetRequest>> videNetRequests, stillValidRequests;
+			ksf::ksSafeList<std::shared_ptr<videnet::VideNetRequest>> videNetRequests;
 			unsigned long lastVideNetPing = 0;
 
 			void onMqttConnected();
