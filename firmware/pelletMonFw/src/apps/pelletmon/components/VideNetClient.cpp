@@ -98,7 +98,7 @@ namespace comps
 		/* Queue remove of timed out requests. */
 		for (auto& req : videNetRequests.items())
 		{
-			if ((millis() - req->getSendingTime() < KSF_ONE_SECOND_MS))
+			if ((millis() - req->getSendingTime() > KSF_ONE_SECOND_MS))
 				videNetRequests.queueRemove(req);
 		}
 
