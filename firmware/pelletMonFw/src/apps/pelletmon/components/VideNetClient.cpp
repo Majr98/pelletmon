@@ -96,7 +96,7 @@ namespace comps
 	void VideNetClient::handleMessageQueue()
 	{
 		/* Queue remove of timed out requests. */
-		for (auto& req : videNetRequests.items())
+		for (auto& req : videNetRequests.getList())
 		{
 			if ((millis() - req->getSendingTime() > KSF_ONE_SECOND_MS))
 				videNetRequests.queueRemove(req);
@@ -110,7 +110,7 @@ namespace comps
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
 				/* Handle vide net packet. Handle plus remove handled requests. */
-				for (auto& req : videNetRequests.items())
+				for (auto& req : videNetRequests.getList())
 				{
 					if (req->onResponse(rx_frame))
 						videNetRequests.queueRemove(req);
