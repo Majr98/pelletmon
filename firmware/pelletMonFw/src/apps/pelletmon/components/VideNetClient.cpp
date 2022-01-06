@@ -85,10 +85,6 @@ namespace comps
 		}
 		else return;
 
-		/* Blink LED - handled command. */
-		if (auto statusLed_sp = statusLed_wp.lock())
-			statusLed_sp->setBlinking(100, 4);
-
 		/* Save settings to kettle EEPROM. */
 		sendVideNetRequest<VideNetSaveSettings>();
 	}
