@@ -63,7 +63,7 @@ namespace comps
 
 	void VideNetClient::onMqttMessage(const String& topic, const String& message)
 	{
-		if (topic.equals("set/controller"))
+		if (topic.equals("set/controller_enabled"))
 		{
 			sendVideNetRequest<VideNetSetController>(message.toInt() == 1, [&]() {
 				uploadValuesToMqtt();
@@ -124,6 +124,7 @@ namespace comps
 
 	void VideNetClient::queueVideNetRequest(std::shared_ptr<VideNetRequest> request_sp)
 	{
+		/* If frame has been successfully pushed into CAN bus and expects reply, push item on pending request list. */
 		if (CAN0.sendFrame(request_sp->prepareMessage()) && request_sp->needWaitForReply())
 			videNetRequests.queueAdd(request_sp);
 	}
@@ -136,58 +137,57 @@ namespace comps
 
 	void VideNetClient::uploadValuesToMqtt()
 	{
-		if (auto mqttConnection = mqttConn_wp.lock())
-		{
-			if (mqttConnection->isConnected())
-			{
-				/* Request current kettle temperature. */
-				sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
-					tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
-				});
+		/* Request current controller enabled status. */
+		sendVideNetRequest<VideNetGetController>([&](bool isEnabled) {
+			tryPublishToMqtt("controller_enabled", isEnabled ? "1" : "0");
+		});
 
-				/* Request current hot water temperature. */
-				sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
-					tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
-				});
+		/* Request current kettle temperature. */
+		sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
+			tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
+		});
 
-				/* Request current heat mode. */
-				sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
-					tryPublishToMqtt("heatmode_current", String(heatMode));
-				});
+		/* Request current hot water temperature. */
+		sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
+			tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
+		});
 
-				/* Request current hot water mode. */
-				sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
-					tryPublishToMqtt("hotwatermode_current", String(heatMode));
-				});
+		/* Request current heat mode. */
+		sendVideNetRequest<VideNetGetHeatMode>([&](uint8_t heatMode) {
+			tryPublishToMqtt("heatmode_current", String(heatMode));
+		});
 
-				/* Request total burner usage (kg * 10). */
-				sendVideNetRequest<VideNetGetBurnerUsageTotal>([&](uint32_t totalUsage) {
-					tryPublishToMqtt("burnerusage_total", String(totalUsage * 0.1f, 1));
-				});
+		/* Request current hot water mode. */
+		sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
+			tryPublishToMqtt("hotwatermode_current", String(heatMode));
+		});
 
-				/* Request current burner power. */
-				sendVideNetRequest<VideNetGetBurnerPower>([&](uint8_t powerPercentage) {
-					tryPublishToMqtt("burnerpower_current", String(powerPercentage));
-				});
+		/* Request total burner usage (kg * 10). */
+		sendVideNetRequest<VideNetGetBurnerUsageTotal>([&](uint32_t totalUsage) {
+			tryPublishToMqtt("burnerusage_total", String(totalUsage * 0.1f, 1));
+		});
 
-				/* Request current burner status. */
-				sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
-					tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus));
-				});
+		/* Request current burner power. */
+		sendVideNetRequest<VideNetGetBurnerPower>([&](uint8_t powerPercentage) {
+			tryPublishToMqtt("burnerpower_current", String(powerPercentage));
+		});
 
-				/* Request current alarm. */
-				sendVideNetRequest<VideNetGetAlarmPointer>([&](uint8_t alarmPointer) {
-					sendVideNetRequest<VideNetGetAlarmAckTime>(alarmPointer, [=](uint32_t alarmAckTime) {
-						uint8_t alarmActive = alarmAckTime == 0 ? 1 : 0;
-						tryPublishToMqtt("burner_alarm_active", String(alarmActive));
-					});
-				});
+		/* Request current burner status. */
+		sendVideNetRequest<VideNetGetBurnerStatus>([&](uint8_t currentBurnerStatus) {
+			tryPublishToMqtt("burnerstatus_current", String(currentBurnerStatus));
+		});
+
+		/* Request current alarm. */
+		sendVideNetRequest<VideNetGetAlarmPointer>([&](uint8_t alarmPointer) {
+			sendVideNetRequest<VideNetGetAlarmAckTime>(alarmPointer, [=](uint32_t alarmAckTime) {
+				uint8_t alarmActive = alarmAckTime == 0 ? 1 : 0;
+				tryPublishToMqtt("burner_alarm_active", String(alarmActive));
+			});
+		});
 				
-				/* Blink LED. */
-				if (auto statusLed_sp = statusLed_wp.lock())
-					statusLed_sp->setBlinking(75, 4);
-			}
-		}
+		/* Blink LED. */
+		if (auto statusLed_sp = statusLed_wp.lock())
+			statusLed_sp->setBlinking(75, 4);
 	}
 
 	void VideNetClient::handleVideNetPeriodicOps()
@@ -198,8 +198,10 @@ namespace comps
 			sendVideNetRequest<VideNetPing>();
 
 			/* Read params and post them. */
-			uploadValuesToMqtt();
-
+			if (auto mqttConnection = mqttConn_wp.lock())
+				if (mqttConnection->isConnected())
+					uploadValuesToMqtt();
+			
 			/* Set current time as last ping time. */
 			lastVideNetPing = millis();
 		}
