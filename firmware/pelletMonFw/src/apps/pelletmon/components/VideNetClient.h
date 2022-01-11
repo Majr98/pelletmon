@@ -46,6 +46,7 @@ namespace comps
 			void handleVideNetPeriodicOps();
 
 			void uploadValuesToMqtt();
+			void uploadControllerSetupStateToMqtt();
 
 		public:
 			bool init(ksf::ksComposable* owner) override;

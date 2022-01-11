@@ -66,24 +66,28 @@ namespace comps
 		if (topic.equals("set/controller_enabled"))
 		{
 			sendVideNetRequest<VideNetSetController>(message.toInt() == 1, [&]() {
-				uploadValuesToMqtt();
+				uploadControllerSetupStateToMqtt();
 			});
 		}
 		else if (topic.equals("set/heatmode"))
 		{
 			uint8_t heatMode = message.toInt();
 			sendVideNetRequest<VideNetSetHeatMode>(heatMode < HeatMode::MAX ? heatMode : HeatMode::Off, [&](){
-				uploadValuesToMqtt();
+				uploadControllerSetupStateToMqtt();
 			});
 		}
 		else if (topic.equals("set/hotwatermode"))
 		{
 			uint8_t hotWaterMode = message.toInt();
 			sendVideNetRequest<VideNetSetHotWaterMode>(hotWaterMode < HeatMode::MAX ? hotWaterMode : HeatMode::Off, [&]() {
-				uploadValuesToMqtt();
+				uploadControllerSetupStateToMqtt();
 			});
 		}
 		else return;
+
+		/* Blink LED. */
+		if (auto statusLed_sp = statusLed_wp.lock())
+			statusLed_sp->setBlinking(50, 8);
 
 		/* Save settings to kettle EEPROM. */
 		sendVideNetRequest<VideNetSaveSettings>();
@@ -131,21 +135,11 @@ namespace comps
 			mqttConnection->publish(topic, value);
 	}
 
-	void VideNetClient::uploadValuesToMqtt()
+	void VideNetClient::uploadControllerSetupStateToMqtt()
 	{
 		/* Request current controller enabled status. */
 		sendVideNetRequest<VideNetGetController>([&](bool isEnabled) {
 			tryPublishToMqtt("controller_enabled", isEnabled ? "1" : "0");
-		});
-
-		/* Request current kettle temperature. */
-		sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
-			tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
-		});
-
-		/* Request current hot water temperature. */
-		sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
-			tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
 		});
 
 		/* Request current heat mode. */
@@ -156,6 +150,22 @@ namespace comps
 		/* Request current hot water mode. */
 		sendVideNetRequest<VideNetGetHotWaterMode>([&](uint8_t heatMode) {
 			tryPublishToMqtt("hotwatermode_current", String(heatMode));
+		});
+	}
+
+	void VideNetClient::uploadValuesToMqtt()
+	{
+		/* Request upload whole controller state (enabled, heat mode, hot water mode). */
+		uploadControllerSetupStateToMqtt();
+
+		/* Request current kettle temperature. */
+		sendVideNetRequest<VideNetGetKettleTemp>([&](uint16_t kettleTemp) {
+			tryPublishToMqtt("boiler_temp", String(kettleTemp * 0.1f, 1));
+		});
+
+		/* Request current hot water temperature. */
+		sendVideNetRequest<VideNetGetHotWaterTemp>([&](uint16_t hotWaterTemp) {
+			tryPublishToMqtt("cwu_temp", String(hotWaterTemp * 0.1f, 1));
 		});
 
 		/* Request total burner usage (kg * 10). */
