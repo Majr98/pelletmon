@@ -129,7 +129,7 @@ namespace comps
 			videNetRequests.queueAdd(request_sp);
 	}
 
-	void VideNetClient::tryPublishToMqtt(const char* topic, const String& value) const
+	void VideNetClient::tryPublishToMqtt(const String& topic, const String& value) const
 	{
 		if (auto mqttConnection = mqttConn_wp.lock())
 			mqttConnection->publish(topic, value);
