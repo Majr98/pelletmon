@@ -96,28 +96,28 @@ namespace comps
 	void VideNetClient::handleMessageQueue()
 	{
 		/* Queue remove of timed out requests. */
-		for (auto& req : videNetRequests.getList())
 		{
-			if ((millis() - req->getSendingTime() > KSF_ONE_SECOND_MS))
-				videNetRequests.queueRemove(req);
-		}
+			ksf::ksSafeListScopedSync scopedListSync(videNetRequests);
 
-		/* Synchronize requests. */
-		videNetRequests.synchronizeQueues();
+			for (auto& req : videNetRequests.getList())
+			{
+				if ((millis() - req->getSendingTime() > KSF_ONE_SECOND_MS))
+					videNetRequests.queueRemove(req);
+			}
+		}
 
 		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
+				ksf::ksSafeListScopedSync scopedListSync(videNetRequests);
+
 				/* Handle vide net packet. Handle plus remove handled requests. */
 				for (auto& req : videNetRequests.getList())
 				{
 					if (req->onResponse(rx_frame))
 						videNetRequests.queueRemove(req);
 				}
-
-				/* Synchronize requests. */
-				videNetRequests.synchronizeQueues();
 			}
 		}
 	}
