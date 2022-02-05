@@ -25,7 +25,7 @@ namespace videnet
 			}
 		}
 
-		return false;\
+		return false;
 	}
 
 	CAN_FRAME& VideNetRequest::prepareMessage()
