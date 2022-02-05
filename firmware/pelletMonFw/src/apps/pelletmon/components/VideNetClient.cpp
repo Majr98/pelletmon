@@ -97,8 +97,10 @@ namespace comps
 	{
 		/* Queue remove of timed out requests. */
 		{
+			/* At the end of this scope, scoped sync will trigger synchronizeQueues on videNetRequests ksSafeList. */
 			ksf::ksSafeListScopedSync scopedListSync(videNetRequests);
 
+			/* Itereate through all pending requests and queue time-outed ones to be reqmoved from the list. */
 			for (auto& req : videNetRequests.getList())
 			{
 				if ((millis() - req->getSendingTime() > KSF_ONE_SECOND_MS))
@@ -106,10 +108,12 @@ namespace comps
 			}
 		}
 
+		/* Process all incomming CAN frames. */
 		for (CAN_FRAME rx_frame; CAN0.read(rx_frame);)
 		{
 			if (rx_frame.id == VIDE_NET_RESPONSE)
 			{
+				/* At the end of this scope, scoped sync will trigger synchronize queues on videNetRequests. */
 				ksf::ksSafeListScopedSync scopedListSync(videNetRequests);
 
 				/* Handle vide net packet. Handle plus remove handled requests. */
