@@ -20,7 +20,7 @@ class PelletMon : public ksf::ksApplication
 		bool init() override;
 
 		/*
-			Method calle every application loop.
+			Method called every application loop.
 			@return - true to continue application execution, false to break application execution.
 		*/
 		bool loop() override;

@@ -102,12 +102,12 @@ namespace comps
 			/*
 				Method called every application loop.
 				@return - true if you want to continue execution, false to break app execution.
-*			*/
+			*/
 			bool loop() override;
 
 			/*
-				Method used to forces CAN circuit to stop. Used before reset (for example in OTA process).
-*			*/
+				Method used to force CAN circuit to stop. Used before reset (for example in OTA process).
+			*/
 			void forceCanStop();
 	};
 }
