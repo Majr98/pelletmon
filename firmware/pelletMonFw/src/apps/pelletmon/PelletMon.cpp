@@ -11,13 +11,14 @@ bool PelletMon::init()
 	/* Create required components (Wifi and Mqtt debug). */
 	addComponent<ksf::ksWifiConnector>(PelletMonConfig::pelletMonDeviceName);
 	addComponent<ksf::ksMqttDebugResponder>();
+	addComponent<ksf::ksResetButton>(CFG_PUSH_PIN, LOW, INPUT_PULLUP);
 
 	/* Create mqttConnector and statusLed components. */
 	addComponent<ksf::ksMqttConnector>();
 	auto statusLed_wp = addComponent<ksf::ksLed>(STATUS_LED_PIN);
 
 	/* Add VideNet CAN client. */
-	videNetClient_wp = addComponent<comps::VideNetClient>();
+	videNetClient_wp = addComponent<comps::VideNetClient>(CAN_RX_PIN, CAN_TX_PIN);
 
 	/* Try to initialize superclass. It will initialize our components and tcpip (due to WiFi component). */
 	if (!ksApplication::init())

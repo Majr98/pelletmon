@@ -3,10 +3,13 @@
 #include <inttypes.h>
 #include <esp32_can.h>
 
-#define VIDE_NET_PING_DELAY 15000
-#define VIDE_NET_PING 0x75C
-#define VIDE_NET_REQUEST 0x604
-#define VIDE_NET_RESPONSE 0x584
+#ifndef VIDE_NET_CAN_PROTO_SPEED
+	#define VIDE_NET_CAN_PROTO_SPEED 125000
+	#define VIDE_NET_PING_DELAY 15000
+	#define VIDE_NET_PING 0x75C
+	#define VIDE_NET_REQUEST 0x604
+	#define VIDE_NET_RESPONSE 0x584
+#endif
 
 namespace videnet
 {

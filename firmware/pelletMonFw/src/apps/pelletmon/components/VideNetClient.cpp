@@ -1,4 +1,3 @@
-#include "../../../board.h"
 #include "../videnet/VideNet.h"
 #include "VideNetClient.h"
 #include <esp32_can.h>
@@ -8,6 +7,12 @@ using namespace std::placeholders;
 
 namespace comps
 {
+	VideNetClient::VideNetClient(uint8_t canRxPin, uint8_t canTxPin)
+	{
+		/* Pass CAN gpio pin nums to CAN interface library. */
+		CAN0.setCANPins((gpio_num_t)canRxPin, (gpio_num_t)canTxPin);
+	}
+
 	bool VideNetClient::init(ksf::ksComposable* owner)
 	{
 		/* Grab weak pointer for MQTT Connector. */
@@ -25,8 +30,7 @@ namespace comps
 		}
 
 		/* Pre-initialize CAN bus. */
-		CAN0.setCANPins((gpio_num_t)CAN_RX_PIN, (gpio_num_t)CAN_TX_PIN);
-		CAN0.init(CAN_PROTO_SPEED);
+		CAN0.init(VIDE_NET_CAN_PROTO_SPEED);
 
 		/* Pre-initialize filter - accept only VIDE NET responses. */
 		CAN0.watchFor(VIDE_NET_RESPONSE);

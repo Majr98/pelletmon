@@ -92,6 +92,14 @@ namespace comps
 			void uploadControllerSetupStateToMqtt();
 
 		public:
+
+			/*
+				VideNetClient constructor method.
+				@param canRxPin - CAN BUS RX (to SN65HVD230 chip) pin number.
+				@param canTxPin - CAN BUS TX (to SN65HVD230 chip) pin number.
+			*/
+			VideNetClient(uint8_t canRxPin, uint8_t canTxPin);
+
 			/*
 				Method that initializes component.
 				@param owner - ksComposable / application owner pointer. Valid only during this call.
