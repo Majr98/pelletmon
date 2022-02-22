@@ -11,6 +11,10 @@ namespace comps
 	{
 		/* Pass CAN gpio pin nums to CAN interface library. */
 		CAN0.setCANPins((gpio_num_t)canRxPin, (gpio_num_t)canTxPin);
+
+		/* Set drive capability. */
+		gpio_set_drive_capability((gpio_num_t)canRxPin, GPIO_DRIVE_CAP_0);
+		gpio_set_drive_capability((gpio_num_t)canTxPin, GPIO_DRIVE_CAP_0);
 	}
 
 	bool VideNetClient::init(ksf::ksComposable* owner)
