@@ -101,7 +101,7 @@ namespace comps
 		sendVideNetRequest<VideNetSaveSettings>();
 	}
 
-	void VideNetClient::handleMessageQueue()
+	void VideNetClient::handleCanBusMessageQueue()
 	{
 		/* Queue remove of timed out requests. */
 		{
@@ -197,7 +197,7 @@ namespace comps
 
 		/* Request current alarm. */
 		sendVideNetRequest<VideNetGetAlarmPointer>([&](uint8_t alarmPointer) {
-			sendVideNetRequest<VideNetGetAlarmAckTime>(alarmPointer, [=](uint32_t alarmAckTime) {
+			sendVideNetRequest<VideNetGetAlarmAckTime>(alarmPointer, [&](uint32_t alarmAckTime) {
 				uint8_t alarmActive = alarmAckTime == 0 ? 1 : 0;
 				tryPublishToMqtt("burner_alarm_active", String(alarmActive));
 			});
@@ -232,8 +232,8 @@ namespace comps
 			/* Handles periodic VideNet operations (clean up requests, send info to MQTT etc...). */
 			handleVideNetPeriodicOps();
 
-			/* Handles pending messages in queue. */
-			handleMessageQueue();
+			/* Handles pending CAN messages in queue. */
+			handleCanBusMessageQueue();
 		}
 
 		return true;

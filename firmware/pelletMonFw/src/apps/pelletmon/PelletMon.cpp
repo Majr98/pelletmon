@@ -49,8 +49,8 @@ bool PelletMon::loop()
 	ArduinoOTA.handle();
 
 	/*	
-	// Return to superclass application loop. 
-	// It handles all our components and whole app logic. 
+		Return to superclass application loop. 
+		It handles all our components and whole app logic. 
 	*/
 	return ksApplication::loop();
 }

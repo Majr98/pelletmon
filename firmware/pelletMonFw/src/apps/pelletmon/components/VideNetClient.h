@@ -74,7 +74,7 @@ namespace comps
 			/*
 				Method that processes CAN message queue, calls callbacks etc. 
 			*/
-			void handleMessageQueue();
+			void handleCanBusMessageQueue();
 			
 			/*
 				Method that handles periodic VideNet operations, like ping, status update etc.
